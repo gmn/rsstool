@@ -117,8 +117,8 @@ struct globochem_s {
     const char * opt;
     const char * help;
 } global_options[] = {
-//{ "-c",                 "set config path" },
 //{ "-d",                 "set download path" },
+{ "-c",                 "set config path" },
 { "-db",                "set database path" },
 { "-h",                 "show help" },
 { "--help",             "show help" },
@@ -261,7 +261,7 @@ static void print_usage()
 "   rm          remove a feed\n" \
 "   dump        fetch and dump a specific feed as its raw xml\n" \
 "   search      search for stuff\n" \
-"   vis         visual mode\n" \
+"   vis         visual mode\n\n" \
 "   see: '%s [command] -h' for help with a specific command\n", exename.str );
 }
 /*
