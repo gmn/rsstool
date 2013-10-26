@@ -1140,6 +1140,7 @@ int CreateDB()
         timeouts INTEGER default 0,             \
         errmsg TEXT,                            \
         disabled char(1) default 0,             \
+        priority INTEGER default 5,             \
         time_reading REAL default 0.0           \
         );",   
 

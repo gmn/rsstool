@@ -756,21 +756,22 @@ void curses_msgbox_t::redraw_msgbox()
 
 const char * help_list[] = {
 " <<-- RSS Power Tool -->>"," ", 
-"o      Open item in browser",
-"x      open media url in browser",
-"l      open page in Lynx",
-"p      Pinboard it",
-"i      Instapaper it",
+"o      [o]pen item in browser",
+"m      open [m]edia url in browser",
+"l      open page in [l]ynx",
+"p      [p]inboard it",
+"i      [i]nstapaper it",
+"b      [b]ookmark this item for later",
+"r      [r]emove bookmark",
+"d/g    [d]ownload/[g]et a page and display contents in main window",
 "space  start/stop slideshow",
 "enter  switch between single-page mode and item-view mode",
 "+/-    adjust slideshow speed",
 "0-9    set slideshow speed to this many seconds",
-"m      bookMark this item for later",
-"?/h    this menu",
-"g      download (Get) a page and display contents in main window",
 "arrow  left/right/up/down - change slide, or scroll text",
 "q/esc  exit",
 "/      search feeds",
+"?/h    this menu",
 0 };
 
 void curses_msgbox_t::help_menu()
@@ -2271,10 +2272,14 @@ void cursesSlideShow_t::run( result_t * _res, unsigned int cur_item_advance )
             dec_timer();
             break;
         case 'g':
+        case 'd':
             get_and_display_item_url();
             break;
-        case 'm':
+        case 'b':
             mark_item();
+            break;
+        case 'r':
+            delete_item();
             break;
         case '?':
         case 'h':
@@ -2294,7 +2299,7 @@ void cursesSlideShow_t::run( result_t * _res, unsigned int cur_item_advance )
         case 'p':
             run_bookmarklet( BOOKMARKLET_PINBOARD );
             break;
-        case 'x':
+        case 'm':
             open_media_url();
             break;
         case KEY_HOME:
@@ -2303,9 +2308,6 @@ void cursesSlideShow_t::run( result_t * _res, unsigned int cur_item_advance )
         case KEY_END:
             if ( linePointers.count() )
                 content_line_ofst = linePointers.count()-1;
-            break;
-        case 'd':
-            delete_item();
             break;
         default:
             break;
