@@ -41,7 +41,7 @@ DBResult * ItemResult::inlineQuery( unsigned int page_start )
     }
 
     // finish
-    query += buf.sprintf( " order by %s %s limit %u offset %u;", field.str, sort.str, limitSz, page_start );
+    query += buf.sprintf( " order by %s %s %s limit %u offset %u;", use_priority ? "priority desc," : "", field.str, sort.str, limitSz, page_start );
     DBResult * res = DB->query( query.str );
 
 

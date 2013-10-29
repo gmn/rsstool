@@ -57,6 +57,7 @@ protected:
     basicString_t sort;     // asc|desc
 
     int distinct;
+    int use_priority;
 
 
     DBResult * inlineQuery( unsigned int );
@@ -64,13 +65,13 @@ protected:
 
 public:
 
-    ItemResult() : totalRows(0), DB(0), limitSz(DEFAULT_QUERY_LIMIT), field("sqldate"), sort("desc"), distinct(0)
+    ItemResult() : totalRows(0), DB(0), limitSz(DEFAULT_QUERY_LIMIT), field("sqldate"), sort("desc"), distinct(0), use_priority(0)
     { }
 
-    ItemResult( DBSqlite * db ) : totalRows(0), DB(db), limitSz(DEFAULT_QUERY_LIMIT), field( "sqldate"), sort("desc"), distinct(0)
+    ItemResult( DBSqlite * db ) : totalRows(0), DB(db), limitSz(DEFAULT_QUERY_LIMIT), field( "sqldate"), sort("desc"), distinct(0), use_priority(0)
     { }
 
-    ItemResult( DBSqlite * db, unsigned int _lim ) : totalRows(0), DB(db), limitSz(_lim), field( "sqldate"), sort("desc"), distinct(0)
+    ItemResult( DBSqlite * db, unsigned int _lim ) : totalRows(0), DB(db), limitSz(_lim), field( "sqldate"), sort("desc"), distinct(0), use_priority(0)
     { }
 
     virtual ~ItemResult() {
@@ -94,6 +95,8 @@ public:
     basicString_t& getClause() { return clause; }
 
     void setDistinct(int d=1) { distinct = d; }
+
+    void usePriority(int d=1) { use_priority = d; }
 };
 
 

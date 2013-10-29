@@ -2435,6 +2435,7 @@ void cursesMenu_t::_menu_last_update_f()
 
         last_update_res.setDBHandle( &DBA );
         last_update_res.setDistinct(1);
+        last_update_res.usePriority(1); // new updates prioritize; favorite feeds float to the top
         last_update_itemView.itemViewMode(0); // mix it up a little
     }
 

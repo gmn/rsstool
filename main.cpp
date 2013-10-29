@@ -3620,7 +3620,8 @@ void rss_show()
                 }
             }
         }
-        // anything not a switch perceived as a range
+
+        // anything that is not a known switch is perceived as a range
         else
         {
             match_ids.append( cmd_args[i]->str );
@@ -5177,7 +5178,7 @@ int main( int argc, char ** argv )
     // detect options, commands and arguments
     parse_arguments( argc, argv );
 
-    // check db, check config, set paths, 
+    // check db, check config, set paths
     setup_db_and_config();
 
     // ready to run sub-routine
