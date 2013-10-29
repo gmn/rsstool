@@ -3771,15 +3771,21 @@ void rss_show()
 
     bool newest_first = true;
 
+    // items from last update also sort by priority
+    if ( (qcode&CODE_SHOW_NEW)==CODE_SHOW_NEW )
+        query.append( " order by priority desc," );
+    else
+        query.append( " order by " );
+
     // reverse
     if ( (qcode&CODE_SHOW_REVERSE)==CODE_SHOW_REVERSE ) 
     {
-        query.append( " order by item.sqldate asc" );
+        query.append( "item.sqldate asc" );
         newest_first = false;
     }
     else
     {
-        query.append( " order by item.sqldate desc" );
+        query.append( "item.sqldate desc" );
     }
 
     // limit
