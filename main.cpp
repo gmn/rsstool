@@ -774,6 +774,7 @@ struct Feed_t
     basicString_t htmlUrl;
     basicString_t description;
     basicString_t type;
+    basicString_t priority;
     int disabled;
     int timeouts;
     void clear() {
@@ -783,6 +784,7 @@ struct Feed_t
         htmlUrl = "";
         description = "";
         type = "";
+        priority = "";
         disabled = timeouts = 0;
     } 
     Feed_t() : id(-1), disabled(0), timeouts(0)
@@ -2487,6 +2489,7 @@ Feed_t & feed_from_db( int feed_id )
     feed.htmlUrl = __get1stRowIfExists( "htmlUrl", res );
     feed.xmlUrl = __get1stRowIfExists( "xmlUrl", res );
     feed.type = __get1stRowIfExists( "type", res );
+    feed.priority = __get1stRowIfExists( "priority", res );
     DBValue * v = res->FindByNameFirstRow( "disabled" );
     feed.disabled = v ? v->getInt() : 0;
     v = res->FindByNameFirstRow( "timeouts" );
@@ -3186,7 +3189,7 @@ int rss_view()
 
     // start output item
     draw_dashed_line();
-    printf( "%-14s%d\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%d\n%-14s%d\n", "Feed id:", F.id, "Title:", F.title.str, "Description:", F.description.str, "xmlUrl:", F.xmlUrl.str, "htmlUrl:", F.htmlUrl.str, "type:",F.type.str, "disabled:",F.disabled, "timeouts:", F.timeouts ); 
+    printf( "%-14s%d\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%d\n%-14s%d\n%-14s%s\n", "Feed id:", F.id, "Title:", F.title.str, "Description:", F.description.str, "xmlUrl:", F.xmlUrl.str, "htmlUrl:", F.htmlUrl.str, "type:",F.type.str, "disabled:",F.disabled, "timeouts:", F.timeouts, "priority:", F.priority.str ); 
 
     basicString_t buf;
     DBResult * res = DBA( buf.sprintf( "select count(item.id) as count from item,item_feeds where item.id=item_feeds.item_id and item_feeds.feed_id = %d;",feed_id ).str );
@@ -3916,10 +3919,11 @@ void rss_list()
 
     if ( res->numRows() == 0 ) {
         res = DBA("select * from feed;");
+        //turn_off_pager(); -- cant get to work properly, just yet
         if ( res->numRows() == 0 )
             printf( "No feeds stored. Try 'rss import' or 'rss add' to add some.\n" );
         else
-            printf( "feeds not found matching supplied arguments\n" );
+            printf( "matching feeds not found\n" );
         return;
     }
 
@@ -4669,12 +4673,13 @@ static void rss_edit_usage( const char * msg =0 ) {
     if ( msg ) {
         printf( "%s", msg );
     }
-    printf( "usage: %s edit <feed id> [-t|-d|-x|-h|-m] <arg>\n", exename.str );
+    printf( "usage: %s edit <feed id> [[-t|-d|-x|-h|-m|-p] <arg>]\n", exename.str );
     printf( "    -t <arg>   set the title\n" );
     printf( "    -d <arg>   set the description\n" );
     printf( "    -x <arg>   set the xmlUrl\n" );
     printf( "    -h <arg>   set the htmlUrl\n" );
     printf( "    -m <arg>   set the type\n" );
+    printf( "    -p <arg>   set the priority (default 5)\n" );
     printf( "    Use 'rss view <id>' to see feed attributes\n" );
 }
 
@@ -4701,12 +4706,13 @@ void rss_edit()
     const char * keyword;
     const char * current;
 
-    printf( "Editing: \"%s\".  What do you want to change?\n", feed.title.str );
 
-    if ( cmd_args.count() == 1 ) {
-        answer = prompt( " [1] title\n [2] description\n [3] xmlUrl\n [4] htmlUrl\n [5] type\n (0 exits)>", 0 );
+    if ( cmd_args.count() == 1 ) 
+    {
+        printf( "Editing: \"%s\".  What do you want to change?\n", feed.title.str );
+        answer = prompt( " [1] title\n [2] description\n [3] xmlUrl\n [4] htmlUrl\n [5] type\n [6] priority\n (0 exits)>", 0 );
         int m = !answer || !*answer ? 6 : atoi ( answer );
-        if ( m < 0 || m > 5 ) {
+        if ( m < 0 || m > 6 ) {
             printf( "edit aborted\n" );
             return;
         }
@@ -4718,6 +4724,7 @@ void rss_edit()
         case 3: *S="-x";break; 
         case 4: *S="-h";break; 
         case 5: *S="-m";break;
+        case 6: *S="-p";break;
         default:
             printf( "edit aborted\n" );
             return;
@@ -4749,9 +4756,14 @@ void rss_edit()
         keyword = "type";
         current = feed.type.str;
     }    
+    else if ( *S == "-p" )
+    {
+        keyword = "priority";
+        current = feed.priority.str;
+    }    
     else
     {
-        return rss_edit_usage( "2nd argument is switch: -t, -d, -x, -h, -m\n" );
+        return rss_edit_usage( "2nd argument is switch: -t, -d, -x, -h, -m, -p\n" );
     }    
 
 

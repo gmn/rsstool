@@ -2452,22 +2452,22 @@ void cursesMenu_t::initialize_menu()
     menu_items[++i].label = "Feeds";
     menu_items[i].run = &cursesMenu_t::_menu_show_feeds_f;
 
+    menu_items[++i].label = "Newest Items";
+    menu_items[i].run = &cursesMenu_t::_menu_last_update_f;
+
+    menu_items[++i].label = "Bookmarked Items";
+    menu_items[i].run = &cursesMenu_t::_menu_bookmarked_items_f;
+
     menu_items[++i].label = "All Items";
     menu_items[i].run = &cursesMenu_t::_menu_all_posts_f;
 
     menu_items[++i].label = "Podcasts";
     menu_items[i].run = &cursesMenu_t::_menu_podcasts_f;
 
-    menu_items[++i].label = "Items from most recent update";
-    menu_items[i].run = &cursesMenu_t::_menu_last_update_f;
-
-    menu_items[++i].label = "Bookmarked items";
-    menu_items[i].run = &cursesMenu_t::_menu_bookmarked_items_f;
-
+/*
     menu_items[++i].label = "Search";
     menu_items[i].run = &cursesMenu_t::_menu_search_f;
 
-/*
     menu_items[++i].label = "Run Default Query";
     menu_items[i].run = &cursesMenu_t::_menu_default_query_f;  
 
