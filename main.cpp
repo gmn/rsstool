@@ -159,7 +159,8 @@ enum RSS_COMMAND_T
     CMD_TEST,
     CMD_POD,
     CMD_VIS,
-    CMD_VERSION
+    CMD_VERSION,
+    CMD_PRIORITY
 };
 
 struct Cmd_s
@@ -187,6 +188,7 @@ struct Cmd_s
 { CMD_DUMP, "dump" },
 { CMD_POD, "pod" },
 { CMD_VIS, "vis" },
+{ CMD_PRIORITY, "priority" },
 /* ---------------- */
 { CMD_TAG, "tag" },
 { CMD_SELECT, "select" },
@@ -247,6 +249,7 @@ static void print_usage()
     while ( (++p)->opt );
 
     printf( "\ncommands:\n" \
+"   priority    print out feed priority of all the feeds\n" \
 "   import      import a group of feeds from xml/opml file\n" \
 "   export      generate opml output of your stored feed database\n" \
 "   list        list the feeds you have stored\n" \
@@ -4785,7 +4788,7 @@ void rss_edit()
     if ( !res || res->rowsUpdated() != 1 )
         printf( "update not completed successfully\n" );
     else
-        printf( "%s set to \"%s\"\n", keyword, answer );
+        printf( "[%d] \"%s\" %s set to \"%s\"\n", feed.id, feed.title.str, keyword, answer );
 }
 
 static void rss_search_usage( const char * msg =0 )
@@ -5054,6 +5057,28 @@ void rss_vis()
 }
 
 
+void rss_priority() 
+{
+    DBResult * res = DBA( "select priority,id,title from feed order by priority desc;" );
+    if ( !res )
+        return;
+
+
+    DBRow * row;
+    while ( (row = res->NextRow()) )
+    {
+        DBValue * p = row->FindByName( "priority" );
+        DBValue * i = row->FindByName( "id" );
+        DBValue * t = row->FindByName( "title" );
+        
+        int pri = p ? p->getInt() : 0;
+        int id = i ? i->getInt() : 0;
+        const char * title = t ? t->getString() : 0;
+
+        printf( "%-4d%-6d%s\n", pri, id, title );
+    }
+}
+
 
 void rss_test()
 {
@@ -5117,6 +5142,7 @@ void run_program_command()
     case CMD_DUMP:
     case CMD_SHOW:
     case CMD_SEARCH:
+    case CMD_PRIORITY:
         start_pager();
         break;
     default:
@@ -5183,6 +5209,9 @@ void run_program_command()
         break;
     case CMD_VIS:
         rss_vis();
+        break;
+    case CMD_PRIORITY:
+        rss_priority();
         break;
     default:
         warning( "command not implemented yet\n" );
