@@ -33,7 +33,7 @@ OBJS = $(O)/main.o \
 	$(O)/sha1.o \
 	$(O)/misc.o  \
 	$(O)/html_entities.o \
-    $(O)/item_result.o
+	$(O)/item_result.o
 
 DBGOBJS = $(DO)/main.o \
 	$(DO)/curseview.o \
@@ -44,7 +44,7 @@ DBGOBJS = $(DO)/main.o \
 	$(DO)/sha1.o \
 	$(DO)/misc.o  \
 	$(DO)/html_entities.o \
-    $(DO)/item_result.o
+	$(DO)/item_result.o
 
 all: $(EXE_NAME)
 

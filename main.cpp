@@ -82,6 +82,9 @@ const unsigned int rss_list_title_maxlen = 36;
 basicString_t download_path;
 int text_field_max_len = 0;
 int curl_timeout_sec = 20;
+                                // "libcurl-agent/1.0" 
+basicString_t curl_user_agent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.13 (KHTML, like Gecko) Chrome/0.A.B.C Safari/525.13";
+
 bool enable_progress_meter = false;
 const unsigned int rss_show_description_len = 38;
 const unsigned int rss_show_ftitle_len = 28;
@@ -1668,7 +1671,7 @@ int get_url_with_curl( const char * url, basicString_t& returnData, bool follow 
         curl_easy_setopt( curl, CURLOPT_NOPROGRESS, 1L);
 
     /* some servers dont like an empty user-agent so we provide one */
-    curl_easy_setopt( curl, CURLOPT_USERAGENT, "libcurl-agent/1.0" );
+    curl_easy_setopt( curl, CURLOPT_USERAGENT, curl_user_agent.str );
 
     /* */
     curl_easy_setopt( curl, CURLOPT_TIMEOUT, curl_timeout_sec );
