@@ -5004,7 +5004,7 @@ static void rss_vis_usage()
 {
     printf( "usage: %s vis [-h|--help|-a|-n|-s|-f|-p|-b]\n\n", exename.str );
     printf( "    -n         show items from last update\n" );
-    printf( "    -a         show all items\n" );
+    printf( "    -a <range> show all items. If range provided show only those in range.\n" );
     printf( "    -s <#>     skip ahead # items\n");
     printf( "    -f         show list of feeds\n" );
     printf( "    -p         show podcasts\n" );
@@ -5030,7 +5030,14 @@ void rss_vis()
 
     // all items sort by newest
     else if ( check_cmdline( "-a" ) ) {
-        menu.setAllItems();
+        const char * constraint = cmdline_arg( "-a" );
+        if ( constraint ) {
+            // get list of feeds from cmdline and load only those feeds
+            basicString_t &range = translate_unknown_args( constraint, "feed.id" );
+            menu.setAllItems( range.str, constraint );
+        } else {
+            menu.setAllItems();
+        }
     }
 
     // show items from last update

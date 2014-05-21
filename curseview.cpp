@@ -2343,8 +2343,15 @@ cursesMenu_t::~cursesMenu_t() {
 
 void cursesMenu_t::_menu_show_feeds_f()
 {
-    if ( !feedmenu_res )
-        feedmenu_res = DBA( "select * from feed order by id asc;" );
+    if ( !feedmenu_res ) {
+        basicString_t query = "select * from feed";
+        if ( feed_constraint.length() > 0 ) {
+            query += " where ";
+            query += feed_constraint.str;
+        }
+        query += " order by id asc;";
+        feedmenu_res = DBA( query.str );
+    }
 
     searchableResult_t sres(feedmenu_res);
 
@@ -2357,6 +2364,17 @@ void cursesMenu_t::_menu_all_posts_f()
     all_posts_slideshow.run( &allitem_res, item_skip );
     item_skip = 0;
 }
+
+void cursesMenu_t::_menu_posts_constrained_f()
+{
+    someitem_res.setDBHandle( &DBA );
+    if ( feed_constraint.length() > 0 ) {
+        someitem_res.setClause( feed_constraint.str );
+    }
+    some_posts_slideshow.run( &someitem_res, item_skip );
+    item_skip = 0;
+}
+
 
 
 void cursesMenu_t::_menu_default_query_f()
@@ -2463,6 +2481,13 @@ void cursesMenu_t::initialize_menu()
 
     menu_items[++i].label = "Podcasts";
     menu_items[i].run = &cursesMenu_t::_menu_podcasts_f;
+
+    if ( feed_constraint.length() ) {
+        menu_items[++i].label = "Feeds in Range: \"";
+        menu_items[i].label += constraint_range.str;
+        menu_items[i].label += "\"";
+        menu_items[i].run = &cursesMenu_t::_menu_posts_constrained_f;
+    }
 
 /*
     menu_items[++i].label = "Search";
@@ -2603,6 +2628,10 @@ void cursesMenu_t::execute_run_state()
         SET_CURSOR( &cursesMenu_t::_menu_all_posts_f );
         _menu_all_posts_f();
         break;
+    case RUN_SOME_ITEMS_CONSTRAINED:
+        SET_CURSOR( &cursesMenu_t::_menu_posts_constrained_f );
+        _menu_posts_constrained_f();
+        break;
     case RUN_BOOKMARKS:
         SET_CURSOR( &cursesMenu_t::_menu_bookmarked_items_f );
         _menu_bookmarked_items_f();
@@ -2625,6 +2654,8 @@ void cursesMenu_t::run()
 {
     start_curses();
     msgbox_init();
+
+    // create the menu
     initialize_menu();
 
     int key = 1000;

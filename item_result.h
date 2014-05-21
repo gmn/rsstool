@@ -99,7 +99,4 @@ public:
     void usePriority(int d=1) { use_priority = d; }
 };
 
-
-
-
 #endif /* __ITEM_RESULT_H__ */

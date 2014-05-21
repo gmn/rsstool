@@ -584,6 +584,7 @@ class cursesMenu_t : public curses_msgbox_t
 
     void _menu_show_feeds_f( void );
     void _menu_all_posts_f( void );
+    void _menu_posts_constrained_f( void );
     void _menu_podcasts_f( void );
     void _menu_default_query_f( void );
     void _menu_edit_stored_queries_f( void );
@@ -592,11 +593,12 @@ class cursesMenu_t : public curses_msgbox_t
     void _menu_search_f( void );
     void _menu_last_update_f( void );
 
-
     cursesSlideShow_t all_posts_slideshow;
+    cursesSlideShow_t some_posts_slideshow;
     cursesSlideShow_t podcast_itemView;
     cursesFeedView_t feedview;
     ItemResult allitem_res;
+    ItemResult someitem_res;
     cppbuffer_t<menuItem_t> menu_items;
 
     unsigned int cursor_row, rows_shift;
@@ -626,11 +628,14 @@ class cursesMenu_t : public curses_msgbox_t
         RUN_LAST_UPDATE,
         RUN_ALL_ITEMS,
         RUN_BOOKMARKS,
-        RUN_PODCASTS
+        RUN_PODCASTS,
+        RUN_SOME_ITEMS_CONSTRAINED
     };
 
     WINDOW * msg_win;
     DBResult * bookmark_res;
+    basicString_t feed_constraint;
+    basicString_t constraint_range;
 
 public:
 
@@ -652,8 +657,14 @@ public:
 
     // set semaphore to start specific subroutine
     void setFeedView() { run_state = RUN_FEEDVIEW; }
+    void setFeedView( const char *cp ) { run_state = RUN_FEEDVIEW; feed_constraint = cp; }
     void setLastUpdate() { run_state = RUN_LAST_UPDATE; }
     void setAllItems( int skip=0 ) { run_state = RUN_ALL_ITEMS; item_skip = skip; }
+    void setAllItems( const char *cp, const char *r ) { 
+        run_state = RUN_SOME_ITEMS_CONSTRAINED; 
+        feed_constraint = cp; 
+        constraint_range = r;
+    }
     void setBookmarks() { run_state = RUN_BOOKMARKS; }
     void setPodcasts() { run_state = RUN_PODCASTS; }
 }; //cursesMenu_t
