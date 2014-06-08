@@ -2610,7 +2610,7 @@ Feed_t * feed_from_document( XMLDocument& document )
             else 
             {
                 const XMLAttribute * attr = elt->FindAttribute( "rel" );
-                if ( attr && strcmp( attr->Value(), "self" ) == 0 ) {
+                if ( attr && (strcmp( attr->Value(), "self" ) == 0 || strcmp( attr->Value(), "alternate" ) == 0) ) {
                     if ( feed.xmlUrl.length() == 0 ) {
                         attr = elt->FindAttribute( "href" );
                         if ( attr )
