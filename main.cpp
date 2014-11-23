@@ -248,7 +248,7 @@ static void print_usage()
     do
     {
         printf( "   %-20s%s\n", p->opt, p->help );
-    } 
+    }
     while ( (++p)->opt );
 
     printf( "\ncommands:\n" \
@@ -311,7 +311,7 @@ static const char * get_sqldate( basicString_t& base )
         char * c = const_cast<char*>(target.str + 10);
         *c = ' '; // Make it mysql format. Don't worry about the trailing, mysql will truncate it
         out.strncpy( target.str, 19 ); 
-    } 
+    }
 
     // probably already sql-style
     else if ( base.length() == strlen( "2013-03-13 12:30:00" ) ) 
@@ -413,7 +413,7 @@ const char * javascript_now()
     out.sprintf( "%lu", epoch );
     out += "000";
     return out.str;
-} 
+}
 
 // <dc:date>2013-04-25T07:00:00+00:00</dc:date>
 const char * make_dcdate( const char * sql )
@@ -648,11 +648,11 @@ basicString_t &  translate_unknown_args( const char * arg, const char * matching
                         ++i;
                     else
                         break;
-                } 
+                }
 
                 ranges[range_counter].stop = ids.data[i];
                 ++range_counter;
-            } 
+            }
             else
                 single_matches.add( ids.data[i] );
         }
@@ -792,7 +792,7 @@ struct Feed_t
         type = "";
         priority = "";
         disabled = timeouts = 0;
-    } 
+    }
     Feed_t() : id(-1), disabled(0), timeouts(0)
     { }
 };
@@ -1020,7 +1020,7 @@ RSS_COMMAND_T is_command( const char *frag )
         {
             return command_list[i].code;
         }
-    } 
+    }
     while( command_list[++i].code );
 
     return CMD_NULL;
@@ -1035,7 +1035,7 @@ const char * is_global_flag( const char * maybe )
         {
             return maybe;
         }
-    } 
+    }
     while( global_options[++i].opt );
 
     return 0;
@@ -1113,7 +1113,7 @@ static void parse_arguments( int argc, char ** argv )
                 printf( "using download_path: \"%s\"\n", download_path.str );
                 ++i;
             }
-        } 
+        }
         else if ( (code=is_command( argv[i] )) ) 
         {
             run_code = code;
@@ -1369,10 +1369,10 @@ static void read_config()
 
             if ( lhs == "db_fullpath" ) {
                 db_fullpath = rhs;
-            } 
+            }
             else if ( lhs == "instapaper_username" ) {
                 instapaper_username = rhs;
-            } 
+            }
             else if ( lhs == "instapaper_password" ) {
                 instapaper_password = rhs;
             }
@@ -1493,7 +1493,7 @@ static void setup_db_and_config()
 
         // set in DBA
         DBA.setName( db_fullpath.str );
-    } 
+    }
     else 
     {
         // prompt user: 
@@ -2049,6 +2049,7 @@ int insert_items_atom( const XMLElement * elt, int feed_id, basicString_t * save
     basicString_t AUTHOR( "author" );
     basicString_t NAME( "name" );
     basicString_t ID( "id" );
+    basicString_t ALTERNATE( "alternate" );
 
     // foreach item (in reverse so that newer posts are higher row id))
     for ( const XMLElement * field = elt->LastChildElement( "entry" ); field; field=field->PreviousSiblingElement() )
@@ -2077,7 +2078,7 @@ int insert_items_atom( const XMLElement * elt, int feed_id, basicString_t * save
                 const XMLNode * text = sub->FirstChild();
                 if ( text )
                     item.title = text->Value();
-            } 
+            }
             else if ( SUMMARY.icompare(eltName) )
             {
                 const XMLNode * text = sub->FirstChild();
@@ -2111,6 +2112,14 @@ int insert_items_atom( const XMLElement * elt, int feed_id, basicString_t * save
                     attr = sub->FindAttribute( "href" );
                     if ( attr )
                         item.item_url = attr->Value();
+                }
+                else { // reason.com:-> <link rel="alternate" href="..." >
+                    const XMLAttribute * attr = sub->FindAttribute("alternate");
+                    if ( attr && ALTERNATE.icompare(attr->Value()) ) {
+                        attr = sub->FindAttribute( "href" );
+                        if ( attr )
+                            item.item_url = attr->Value();
+                    }
                 }
             }
             else if ( ID.icompare(eltName) ) {
@@ -2244,14 +2253,14 @@ int insert_items_rss( const XMLElement * elt, int feed_id, basicString_t * saved
                 const XMLNode * text = sub->FirstChild();
                 if ( text )
                     item.title = text->Value();
-            } 
+            }
             else if ( DESCRIPTION.icompare(eltName) ) 
             {
                 // no constraint: will override other description; higher priority
                 const XMLNode * text = sub->FirstChild();
                 if ( text ) 
                     item.description = text->Value();
-            } 
+            }
             else if ( ITUNES_SUMMARY.icompare(eltName) || ITUNES_SUBTITLE.icompare(eltName) )
             {
                 if ( ! item.description.length() ) {
@@ -2427,7 +2436,7 @@ int insert_feed_no_matter_what( Feed_t& feed )
         printf( "added feed: [%d] \"%s\"\n", id, titleOrig.str );
         fflush(stdout);
         return id;
-    } 
+    }
 
     return 0;
 }
@@ -2606,7 +2615,7 @@ Feed_t * feed_from_document( XMLDocument& document )
                 attr = elt->FindAttribute( "href" );
                 if ( attr )
                     feed.htmlUrl = attr->Value();
-            } 
+            }
             else 
             {
                 const XMLAttribute * attr = elt->FindAttribute( "rel" );
@@ -2726,7 +2735,7 @@ static void wait_for_pager(void)
     pid_t waiting;
     while ((waiting = waitpid(pager_pid, &status, 0)) < 0 && errno == EINTR)
         ; 
-}   
+}
 
 static void start_pager()
 {
@@ -3174,7 +3183,7 @@ int rss_view_usage( const char * m =0 )
         printf( "%s", m );
     printf( "usage: %s view <id>\n    view a feed's attributes\n", exename.str );
     return 0;
-} 
+}
 
 int rss_view()
 {
@@ -3219,7 +3228,7 @@ void rss_add_usage( const char * msg =0 ) {
     if ( msg )
         printf( "%s\n", msg );
     
-    printf( "usage: %s [-f feed_id][-n] <file|url> \n\n", exename.str );
+    printf( "usage: %s add [-f feed_id][-n] <file|url> \n\n", exename.str );
     printf( "   no args       add url, creating feed if not exists and pull items from it\n" );
     printf( "   -n            add new feed from file\n" );
     printf( "   -f feed_id    add items to existing feed from file\n" );
@@ -3670,7 +3679,7 @@ void rss_show()
             draw_dashed_line();
 
             return;
-        } 
+        }
         else 
         {
             return rss_show_usage( buf.sprintf( "no match for \"%s\"\n", verbose.str ).str );
