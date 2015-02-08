@@ -2752,46 +2752,60 @@ static void start_pager()
     // check terminal dimensions
     // ...
 
-    // if output lines do not exceed terminal lines, return
+    // if output lines do not exceed terminal lines, 
+    // it would be nice to return instead of invoking pager
     // ...
 
-    // spawn a pager & map stdout to pipe_fd[1]
+
+    // create a pipe:  0 = read end, 1 = write end
     if ( pipe(pipe_fd) < 0 ) {
         error( "pipe error\n" ); 
     }
 
+    // duplicate process 
     if ( (pager_pid = fork()) < 0 ) {
         error( "fork error\n" );
     }
 
-    // parent
+    // when you fork, you also fork the pipe ID integers.
+    // We'll connect the parent's output, to input on the child's side 
+
+    // parent; parent process gets child's pid
     if ( pager_pid > 0 )
-    {   
+    {
+        // close the read end
         close(pipe_fd[0]);
 
+        // pipe file descriptor can't be equal to the fd it is duplicating
+        // canonical fd are: 0 = stdin, 1 = stdout, 2 = stderr
         if ( pipe_fd[1] != 1 )
         {   
-            // send all writes to stdout to the pipe, to the pager process
+            // send stdout of the parent process to the pipe leading to the child pager process 
             if ( dup2( pipe_fd[1], 1 ) != 1 ) {
                 error( "dup2 error\n" ); 
             }
-            if ( isatty(2) ) 
+            // pipe stderr to it as well
+            if ( isatty(2) ) {
                 if ( dup2( pipe_fd[1], 2 ) != 2 ) {
                     error( "dup2 error\n" ); 
                 }
-            close( pipe_fd[1] ); // dont need 2 handles to same stream
+            }
+            // now that stdout goes to the pipe, close the pipe fd; 
+            // we dont need 2 output handles to same stream
+            close( pipe_fd[1] ); 
         }
     
-        /* this makes sure the parent terminates after the pager */
+        // this makes sure the parent terminates after the pager
         atexit(wait_for_pager);
     }
 
-    // child
+    // child; child process gets pid 0 
     else
-    {   
+    {
+        // close write end; child is reading only
         close( pipe_fd[1] );
 
-        // cause all read() from stdin to come from pipe from parent instead
+        // cause all read() from stdin to come from pipe from parent instead of stdin
         if ( pipe_fd[0] != 0 )
         {   
             if ( dup2( pipe_fd[0], 0 ) != 0 ) {
@@ -2799,7 +2813,6 @@ static void start_pager()
             }
             close( pipe_fd[0] );
         }
-
 
         // setup pager
         // can be overridden by env vars: RSS_PAGER, then PAGER 
@@ -2819,9 +2832,9 @@ static void start_pager()
         else
             argv0 = pager;
 
-
         // replaces the current process image with a new process image
-        if ( execl( pager, argv0, (char*) 0 ) < 0) {
+        // the child of the fork becomes the pager, with stdin coming from parent
+        if ( execlp( pager, argv0, (char*) 0 ) < 0) {
             error( "execl error\n" ); 
         }
     }
