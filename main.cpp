@@ -267,8 +267,8 @@ static void print_usage()
 "   rm          remove a feed\n" \
 "   dump        fetch and dump a specific feed as its raw xml\n" \
 "   search      search for stuff\n" \
-"   vis         visual mode\n\n" \
-"   see: '%s [command] -h' for help with a specific command\n", exename.str );
+"   vis         visual mode\n" \
+"   <cmd> -h    see help for specific command, eg. `rss vis -h'\n" );
 }
 /*
 "   download\n" \
