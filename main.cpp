@@ -112,7 +112,8 @@ int slideshow_speed = 5;
 
 const char * ordinals[] = {"0th","1st","2nd","3rd","4th","5th","6th","7th","8th","9th",0};
 
-const char * htmlHeader = "<!DOCTYPE html><html lang=\"en\"><head><script type=\"text/javascript\"></script><style>\n" \
+const char * htmlHeader = "<!DOCTYPE html><html lang=\"en\"><head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"> <script type=\"text/javascript\">\n" \
+"</script><style>\n" \
 "* {margin:0;padding:0;}\n" \
 ".content {border:4px solid #cdf; padding:6px;overflow-x:hidden;background-color:#ddd}\n" \
 ".content a,a:visited,b,i {background-color:inherit}\n" \
@@ -124,11 +125,14 @@ const char * htmlHeader = "<!DOCTYPE html><html lang=\"en\"><head><script type=\
 ".item h3 a,a:visited{ color:#Ca2 }\n" \
 "</style>\n" \
 "<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1, minimum-scale=1\">\n" \
-"</style></head><body>\n";
+"</style></head><body> <a href=\"javascript:void(0);\" id=\"to_block\">open all</a> &nbsp; <a href=\"javascript:void(0);\" id=\"to_none\">close all</a>\n";
+
 
 const char * htmlFooter = "\n<script type=\"text/javascript\">\n" \
-"function _fE( e ) { var elt = e; function exp() { for ( var i = 0; i < elt.children.length; i++ ) { if ( elt.children[i].tagName == \"DIV\" ) { elt.children[i].style.display = (elt.children[i].style.display == \"none\") ? \"block\" : \"none\"; return; } } }; return exp; }\n" \
+"function _fE( e ) { var elt = e; function exp() { for ( var i = 0; i < elt.children.length; i++ ) { if ( elt.children[i].tagName == \"DIV\" ) {  elt.children[i].style.display = (elt.children[i].style.display == \"none\") ? \"block\" : \"none\"; return; } } }; return exp; }\n" \
 "function _con() { var itm = document.getElementsByClassName( \"item\" ); for ( var i = 0; i < itm.length; i++ ) { var kids = itm[i].children; for ( var j = 0; j < kids.length; j++ ) { if ( kids[j].tagName == \"H3\" ) { kids[j].onclick = _fE( itm[i] ); break; } } } };\n_con();\n" \
+"function _xpl(_s) { var s = _s; function _st() { var con = document.getElementsByClassName( \"content\" ); for ( var i = 0; i < con.length; i++ ) { con[i].style.display = _s; } } return _st; };\n" \
+"document.getElementById('to_block').onclick = _xpl('block'); document.getElementById('to_none').onclick = _xpl('none');\n" \
 "</script></body></html>\n";
 
 

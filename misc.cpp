@@ -1132,6 +1132,30 @@ HtmlTagStripper::HtmlTagStripper() : tag(), lastTag(), line_buffer()
     tag.contents.setMem( 2048 );
 }
 
+// returns how many bytes (counting this one) the utf8 character encoding is
+int HtmlTagStripper::utf8codeBytes( char c )
+{  
+    union {
+        char c;
+        unsigned char u;
+    } _x;
+    _x.c = c;
+    unsigned char b = _x.u;
+
+    if ( (b & 0xC0) == 0xC0 )
+        return 2;
+    if ( (b & 0xE0) == 0xE0 )
+        return 3;
+    if ( (b & 0xF0) == 0xF0 )
+        return 4;
+    if ( (b & 0xF8) == 0xF8 )
+        return 5;
+    if ( (b & 0xFC) == 0xFC )
+        return 6;
+
+    return 1;
+}
+
 int HtmlTagStripper::classifyTag( tag_t& in )
 {
     // guarantee at least 2 characters
@@ -1211,10 +1235,18 @@ void HtmlTagStripper::strip( const basicString_t& in, basicString_t& out, bool h
 
         // normal text; not inside a tag, not inside an entity
         if ( c != '<' && !tag.length() && c != '&' && !entity.length() ) {
-            if ( c != '\t' && c != '\n' && c >= 0 )
+            if ( c != '\t' && c != '\n' && c >= 0 ) {
                 line_buffer += c;
-            else if ( line_buffer.str && line_buffer.length() > 1 && line_buffer.str[line_buffer.length()-1] != '\n' )
+            } 
+            else if ( c < 0 ) {
+                // is utf8 extended code point. discard the bytes for now
+                int bytes = utf8codeBytes( c );
+                i += bytes;
+                continue;
+            } 
+            else if ( line_buffer.str && line_buffer.length() > 1 && line_buffer.str[line_buffer.length()-1] != '\n' ) {
                 line_buffer += ' '; // newlines & tabs trade for spaces
+            }
 
             ent_type = ENT_NONE;
         }

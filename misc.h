@@ -407,6 +407,8 @@ class HtmlTagStripper
     // returns 1 if valid tag, 0 if not. Sets tag.contents to entire tag
     int classifyTag( tag_t& in );
 
+    int utf8codeBytes( char );
+
 public:
 
     HtmlTagStripper() ;
