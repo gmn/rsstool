@@ -117,7 +117,7 @@ const char * htmlHeader = "<!DOCTYPE html><html lang=\"en\"><head><script type=\
 ".content {border:4px solid #cdf; padding:6px;overflow-x:hidden;background-color:#ddd}\n" \
 ".content a,a:visited,b,i {background-color:inherit}\n" \
 "html, body { font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;\n" \
-"font-size:!important 50px; margin:0 4px; overflow-x:hidden; width:98%; background-color:#342 }\n" \
+"font-size:!important 50px; margin:0 4px; overflow-x:hidden; width:98%; background-color:#88b0a3 /*CA2*/ }\n" \
 ".item {margin-bottom:10px;}\n" \
 ".item h3 { font-weight:normal; background-color:#cdf; padding:4px; overflow-x:hidden }\n" \
 ".item h3 a,a:visited,b,i { background-color:inherit }\n" \
