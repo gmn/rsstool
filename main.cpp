@@ -800,9 +800,10 @@ struct Feed_t
     basicString_t htmlUrl;
     basicString_t description;
     basicString_t type;
-    basicString_t priority;
+    //basicString_t priority;
     int disabled;
     int timeouts;
+    int priority;
     void clear() {
         id = -1;
         title = "";
@@ -810,10 +811,12 @@ struct Feed_t
         htmlUrl = "";
         description = "";
         type = "";
-        priority = "";
-        disabled = timeouts = 0;
+        //priority = "";
+        disabled = 0;
+        timeouts = 0;
+        priority = 0;
     }
-    Feed_t() : id(-1), disabled(0), timeouts(0)
+    Feed_t() : id(-1), disabled(0), timeouts(0), priority(0)
     { }
 };
 
@@ -938,6 +941,12 @@ struct FeedBuffer_t : public cppbuffer_t<Feed_t*>
         if ( count() == 0 )
             push_back( new Feed_t ); 
         (*this)[ this->count()-1 ]->disabled = atoi(_type);
+    }
+
+    void setPriority( const char * _type ) {
+        if ( count() == 0 )
+            push_back( new Feed_t ); 
+        (*this)[ this->count()-1 ]->priority = atoi(_type);
     }
 
     ~FeedBuffer_t() {
@@ -1612,7 +1621,7 @@ int scrapeOpml( const XMLElement * elt, FeedBuffer_t& FB )
     basicString_t DESCRIPTION( "description" );
     basicString_t DISABLED( "disabled" );
     basicString_t TYPE( "type" );
-
+    basicString_t PRIORITY( "priority" );
 
     for ( const XMLElement * sib = elt; sib; sib=sib->NextSiblingElement() ) 
     {
@@ -1640,6 +1649,8 @@ int scrapeOpml( const XMLElement * elt, FeedBuffer_t& FB )
                     FB.setDisabled( attr->Value() );
                 } else if ( TYPE.icompare( val ) ) {
                     FB.setType( attr->Value() );
+                } else if ( PRIORITY.icompare( val ) ) {
+                    FB.setPriority( attr->Value() );
                 }
             }
         }
@@ -2447,8 +2458,8 @@ int insert_feed_no_matter_what( Feed_t& feed )
     if ( feed.type.length() == 0 )
         feed.type = "rss";
 
-    query.sprintf( "insert into feed(title,xmlUrl,htmlUrl,description,type,disabled) values('%s','%s','%s','%s','%s',%d);",
-                    feed.title.str, feed.xmlUrl.str, feed.htmlUrl.str, feed.description.str, feed.type.str, feed.disabled );
+    query.sprintf( "insert into feed(title,xmlUrl,htmlUrl,description,type,disabled,priority) values('%s','%s','%s','%s','%s',%d,%d);",
+                    feed.title.str, feed.xmlUrl.str, feed.htmlUrl.str, feed.description.str, feed.type.str, feed.disabled, feed.priority );
 
     DBResult * insertRes = DBA( query.str );
     if ( insertRes ) {
@@ -2524,11 +2535,16 @@ Feed_t & feed_from_db( int feed_id )
     feed.htmlUrl = __get1stRowIfExists( "htmlUrl", res );
     feed.xmlUrl = __get1stRowIfExists( "xmlUrl", res );
     feed.type = __get1stRowIfExists( "type", res );
-    feed.priority = __get1stRowIfExists( "priority", res );
+
     DBValue * v = res->FindByNameFirstRow( "disabled" );
     feed.disabled = v ? v->getInt() : 0;
+
     v = res->FindByNameFirstRow( "timeouts" );
     feed.timeouts = v ? v->getInt() : 0;
+
+    v = res->FindByNameFirstRow( "priority" );
+    feed.priority = v ? v->getInt() : 0;
+
     return feed;
 }
 
@@ -3237,7 +3253,7 @@ int rss_view()
 
     // start output item
     draw_dashed_line();
-    printf( "%-14s%d\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%d\n%-14s%d\n%-14s%s\n", "Feed id:", F.id, "Title:", F.title.str, "Description:", F.description.str, "xmlUrl:", F.xmlUrl.str, "htmlUrl:", F.htmlUrl.str, "type:",F.type.str, "disabled:",F.disabled, "timeouts:", F.timeouts, "priority:", F.priority.str ); 
+    printf( "%-14s%d\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%d\n%-14s%d\n%-14s%d\n", "Feed id:", F.id, "Title:", F.title.str, "Description:", F.description.str, "xmlUrl:", F.xmlUrl.str, "htmlUrl:", F.htmlUrl.str, "type:",F.type.str, "disabled:",F.disabled, "timeouts:", F.timeouts, "priority:", F.priority ); 
 
     basicString_t buf;
     DBResult * res = DBA( buf.sprintf( "select count(item.id) as count from item,item_feeds where item.id=item_feeds.item_id and item_feeds.feed_id = %d;",feed_id ).str );
@@ -4127,7 +4143,7 @@ void rss_export()
     XMLElement * body = doc.NewElement( "body" );
     opml->InsertEndChild( body );
 
-#define OUTLINE_ATTRIB_SZ 7
+#define OUTLINE_ATTRIB_SZ 8
     
     struct sixpack {
         basicString_t val[OUTLINE_ATTRIB_SZ];
@@ -4139,7 +4155,7 @@ void rss_export()
         }
     } six;
 
-    const char * attr[] = { "text", "title", "type", "xmlUrl", "htmlUrl", "description", "disabled" };
+    const char * attr[] = { "text", "title", "type", "xmlUrl", "htmlUrl", "description", "disabled", "priority" };
 
     DBResult * res = DBA( "select * from feed;" );
     DBRow * row;
@@ -4158,6 +4174,8 @@ void rss_export()
         six[6] = __DontGetIfNotExist( "disabled", row );
         if ( six[6] == "0" )
             six[6].clear(); // might as well not even print it
+
+        six[7] = __DontGetIfNotExist( "priority", row );
 
         //
         XMLElement * outline = doc.NewElement( "outline" );
@@ -4797,7 +4815,7 @@ void rss_edit()
     basicString_t buf;
     const char * keyword;
     const char * current;
-
+    char ibuf[10];
 
     if ( cmd_args.count() == 1 ) 
     {
@@ -4851,7 +4869,8 @@ void rss_edit()
     else if ( *S == "-p" )
     {
         keyword = "priority";
-        current = feed.priority.str;
+        current = &ibuf[0];
+        sprintf( ibuf, "%d", feed.priority );
     }    
     else
     {
