@@ -1335,16 +1335,14 @@ void HtmlTagStripper::strip( const basicString_t& in, basicString_t& out, bool h
                 if ( tag.icompare( "</a" ) )
                 {
                     // name the url
-                    if ( !htmlUrls )
-                        out += line_buffer;
+                    out += line_buffer;
                     line_buffer.erase();
 
                     // get the href from the opening tag
                     const char * href = lastTag.contents.stristr( "href=" );
                     if ( href ) 
                     {
-                        if ( !htmlUrls )
-                            out += "-[";
+                        out += "-[";
 
                         const char * rov = href + 5; 
 
@@ -1365,7 +1363,7 @@ void HtmlTagStripper::strip( const basicString_t& in, basicString_t& out, bool h
                             out += line_buffer += "]";
                         } else {
                             basicString_t fmt;
-                            fmt.sprintf( "<a href=\"%s\" target=\"_none\">%s</a>", line_buffer.str, line_buffer.str );
+                            fmt.sprintf( "<a href=\"%s\" target=\"_none\">%s</a>]", line_buffer.str, line_buffer.str );
                             out += fmt;
                         }
                     }

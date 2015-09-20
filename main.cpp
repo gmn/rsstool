@@ -115,10 +115,10 @@ const char * ordinals[] = {"0th","1st","2nd","3rd","4th","5th","6th","7th","8th"
 const char * htmlHeader = "<!DOCTYPE html><html lang=\"en\"><head> <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\"> <script type=\"text/javascript\">\n" \
 "</script><style>\n" \
 "* {margin:0;padding:0;}\n" \
-".content {border:4px solid #cdf; padding:6px;overflow-x:hidden;background-color:#ddd}\n" \
+".content {border:4px solid #cdf; padding:6px;overflow-x:hidden;background-color:#e0e0ec}\n" \
 ".content a,a:visited,b,i {background-color:inherit}\n" \
 "html, body { font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;\n" \
-"font-size:!important 50px; margin:0 4px; overflow-x:hidden; width:98%; background-color:#88b0a3 /*CA2*/ }\n" \
+"font-size:!important 50px; margin:0 4px; overflow-x:hidden; width:98%; background-color:#9FD1C1 /* #88b0a3 CA2*/ }\n" \
 ".item {margin-bottom:10px;}\n" \
 ".item h3 { font-weight:normal; background-color:#cdf; padding:4px; overflow-x:hidden }\n" \
 ".item h3 a,a:visited,b,i { background-color:inherit }\n" \
@@ -3555,11 +3555,19 @@ void print_feed_items( DBResult * res, bool newest_first =true, bool display_bod
             printf( "\n<div class=\"item\">\n<h3>" );
         }
 
-        printf( "[%s] %s %-2u %1s  %s  %s", feed_id.str, ftitle.str, item_id, tag.str, date.str, title.str );
+        if ( isHtml ) {
+            printf( "[%s] %s %-2u %1s %s <b>%s</b>", feed_id.str, ftitle.str, item_id, tag.str, date.str, title.str );
+        } else {
+            printf( "[%s] %s %-2u %1s  %s  %s", feed_id.str, ftitle.str, item_id, tag.str, date.str, title.str );
+        }
+
         if ( author.length() )
             printf( " - %s\n", author.str );
         else
             printf( "\n" );
+
+        if ( isHtml )
+            printf( "<br>" );
 
         // media_url
         if ( media_url.length() ) {
