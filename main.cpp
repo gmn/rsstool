@@ -112,8 +112,24 @@ int slideshow_speed = 5;
 
 const char * ordinals[] = {"0th","1st","2nd","3rd","4th","5th","6th","7th","8th","9th",0};
 
+const char * htmlHeader = "<!DOCTYPE html><html lang=\"en\"><head><script type=\"text/javascript\"></script><style>\n" \
+"* {margin:0;padding:0;}\n" \
+".content {border:4px solid #cdf; padding:6px;overflow-x:hidden;background-color:#ddd}\n" \
+".content a,a:visited,b,i {background-color:inherit}\n" \
+"html, body { font-family: Arial, 'Helvetica Neue', Helvetica, sans-serif;\n" \
+"font-size:!important 50px; margin:0 4px; overflow-x:hidden; width:98%; background-color:#342 }\n" \
+".item {margin-bottom:10px;}\n" \
+".item h3 { font-weight:normal; background-color:#cdf; padding:4px; overflow-x:hidden }\n" \
+".item h3 a,a:visited,b,i { background-color:inherit }\n" \
+".item h3 a,a:visited{ color:#Ca2 }\n" \
+"</style>\n" \
+"<meta name=\"viewport\" content=\"width=device-width, initial-scale=1.0, maximum-scale=1, minimum-scale=1\">\n" \
+"</style></head><body>\n";
 
-
+const char * htmlFooter = "\n<script type=\"text/javascript\">\n" \
+"function _fE( e ) { var elt = e; function exp() { for ( var i = 0; i < elt.children.length; i++ ) { if ( elt.children[i].tagName == \"DIV\" ) { elt.children[i].style.display = (elt.children[i].style.display == \"none\") ? \"block\" : \"none\"; return; } } }; return exp; }\n" \
+"function _con() { var itm = document.getElementsByClassName( \"item\" ); for ( var i = 0; i < itm.length; i++ ) { var kids = itm[i].children; for ( var j = 0; j < kids.length; j++ ) { if ( kids[j].tagName == \"H3\" ) { kids[j].onclick = _fE( itm[i] ); break; } } } };\n_con();\n" \
+"</script></body></html>\n";
 
 
 struct globochem_s {
@@ -3475,7 +3491,7 @@ const char * last_report_ids()
     return v ? v->getString() : 0;
 }
 
-void print_feed_items( DBResult * res, bool newest_first =true, bool display_body =true )
+void print_feed_items( DBResult * res, bool newest_first =true, bool display_body =true, bool isHtml =false )
 {
     if ( !res )
         return ;
@@ -3483,6 +3499,10 @@ void print_feed_items( DBResult * res, bool newest_first =true, bool display_bod
     // 
     basicString_t stripped;
     HtmlTagStripper detagger;
+
+    if ( isHtml ) {
+        printf( "%s", htmlHeader );
+    }
 
     //
     // PRINT FEED ITEM
@@ -3511,6 +3531,9 @@ void print_feed_items( DBResult * res, bool newest_first =true, bool display_bod
         basicString_t content = __getIfExists( "content", row );
         basicString_t author = __getIfExists( "author", row );
 
+        if ( isHtml ) {
+            printf( "\n<div class=\"item\">\n<h3>" );
+        }
 
         printf( "[%s] %s %-2u %1s  %s  %s", feed_id.str, ftitle.str, item_id, tag.str, date.str, title.str );
         if ( author.length() )
@@ -3519,18 +3542,37 @@ void print_feed_items( DBResult * res, bool newest_first =true, bool display_bod
             printf( "\n" );
 
         // media_url
-        if ( media_url.length() )
-            printf ("m %s\n", media_url.str );
+        if ( media_url.length() ) {
+            if ( isHtml ) {
+                printf ("<a href=\"%s\" target=\"_none\">%s</a>\n", media_url.str, media_url.str );
+            } else {
+                printf ("m %s\n", media_url.str );
+            }
+        }
+
         // item_url
-        if ( item_url.length() )
-            printf ("h %s\n", item_url.str );
+        if ( item_url.length() ) {
+            if ( isHtml ) {
+                printf ("<a href=\"%s\" target=\"_none\">%s</a>\n", item_url.str, item_url.str );
+            } else {
+                printf ("h %s\n", item_url.str );
+            }
+        }
+
+        if ( isHtml ) {
+            printf( "</h3>\n" );
+        }
 
         if ( display_body ) 
         {
+            if ( isHtml ) {
+                printf( "<div class=\"content\" style=\"display:none\">\n" );
+            }
+
             // description
             if ( desc.str && desc != "(null)" ) {
                 if ( config_strip_html_on ) {
-                    detagger.strip( desc, stripped );
+                    detagger.strip( desc, stripped, isHtml );
                     printf( "\n%s\n", stripped.str );
                 } else
                     printf( "\n%s\n", desc.str );
@@ -3539,18 +3581,30 @@ void print_feed_items( DBResult * res, bool newest_first =true, bool display_bod
             // content:encoded
             if ( content.str && content != "(null)" ) {
                 if ( config_strip_html_on ) {
-                    detagger.strip( content, stripped );
+                    detagger.strip( content, stripped, isHtml );
                     printf( "\n%s\n", stripped.str );
                 } else
                     printf( "\n%s\n", content.str );
             }
+
+            if ( isHtml ) {
+                printf( "</div>\n" );
+            }
         }
         
         // demark each item
-        draw_dashed_line();
+        if ( isHtml ) {
+            printf( "</div> <!-- item -->\n" );
+        } else {
+            draw_dashed_line();
+        }
             
         fflush( stdout );
         ++row_num;
+    }
+
+    if ( isHtml ) {
+        printf( "%s", htmlFooter );
     }
 }
 
@@ -3569,6 +3623,7 @@ static void rss_show_usage( const char *msg =0 ) {
     printf( "    -x      exclude feeds by supplying range, eg: 11-14,16,44-65. Must be no whitespace or quoted argument.\n" );
     printf( "            Feed id's can be given in ranges of the type 10,14-16,20-22. This would\n             show items from feeds 10,14,15,16,20,21,22\n" );
     printf( "    -s      show only headings, turn off contents display\n" );
+    printf( "    -H      output in html format\n" );
 }
 
 #define CODE_SHOW_NEW       BIT(0)
@@ -3592,9 +3647,14 @@ void rss_show()
     basicString_t buf;
     basicString_t verbose;
     int verbose_id = 0;
+    bool isHtml = false;
 
     if ( check_cmdline( "-h" ) || check_cmdline( "--help" ) || !cmd_args.count() )
         return rss_show_usage();
+
+    if ( check_cmdline( "-H" ) ) {
+        isHtml = true;
+    }
 
     for ( unsigned int i = 0 ; i < cmd_args.count() ; i++ )
     {
@@ -3839,7 +3899,7 @@ void rss_show()
     //
     // output results to the screen
     //
-    print_feed_items( res, newest_first, (qcode&CODE_SHOW_NO_BODY)!=CODE_SHOW_NO_BODY );
+    print_feed_items( res, newest_first, (qcode&CODE_SHOW_NO_BODY)!=CODE_SHOW_NO_BODY, isHtml );
 
 } // rss_show
 

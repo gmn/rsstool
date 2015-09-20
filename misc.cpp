@@ -1184,7 +1184,7 @@ int HtmlTagStripper::classifyTag( tag_t& in )
     return in.contents.length() > 0;
 }
 
-void HtmlTagStripper::strip( const basicString_t& in, basicString_t& out )
+void HtmlTagStripper::strip( const basicString_t& in, basicString_t& out, bool htmlUrls )
 {
     out.erase();
 
@@ -1211,7 +1211,7 @@ void HtmlTagStripper::strip( const basicString_t& in, basicString_t& out )
 
         // normal text; not inside a tag, not inside an entity
         if ( c != '<' && !tag.length() && c != '&' && !entity.length() ) {
-            if ( c != '\t' && c != '\n' )
+            if ( c != '\t' && c != '\n' && c >= 0 )
                 line_buffer += c;
             else if ( line_buffer.str && line_buffer.length() > 1 && line_buffer.str[line_buffer.length()-1] != '\n' )
                 line_buffer += ' '; // newlines & tabs trade for spaces
@@ -1303,14 +1303,16 @@ void HtmlTagStripper::strip( const basicString_t& in, basicString_t& out )
                 if ( tag.icompare( "</a" ) )
                 {
                     // name the url
-                    out += line_buffer;
+                    if ( !htmlUrls )
+                        out += line_buffer;
                     line_buffer.erase();
 
                     // get the href from the opening tag
                     const char * href = lastTag.contents.stristr( "href=" );
                     if ( href ) 
                     {
-                        out += "-[";
+                        if ( !htmlUrls )
+                            out += "-[";
 
                         const char * rov = href + 5; 
 
@@ -1326,7 +1328,14 @@ void HtmlTagStripper::strip( const basicString_t& in, basicString_t& out )
                             ++end;
 
                         line_buffer.strncpy( rov, (end-rov) * sizeof(char) );
-                        out += line_buffer += "]";
+
+                        if ( !htmlUrls ) {
+                            out += line_buffer += "]";
+                        } else {
+                            basicString_t fmt;
+                            fmt.sprintf( "<a href=\"%s\" target=\"_none\">%s</a>", line_buffer.str, line_buffer.str );
+                            out += fmt;
+                        }
                     }
 
                     line_buffer.erase();
@@ -1339,18 +1348,28 @@ void HtmlTagStripper::strip( const basicString_t& in, basicString_t& out )
                     tag.icompare("</h3") || tag.icompare("</h4") || 
                     tag.icompare("</h5") || tag.icompare("</h6") ) 
                 {
-                    str_toupper( line_buffer.str );
-                    out += line_buffer;
+                    if ( !htmlUrls ) {
+                        str_toupper( line_buffer.str );
+                        out += line_buffer;
+                    } else {
+                        out += "<b>";
+                        out += line_buffer += "</b>";
+                    }
                     line_buffer.erase();
                 }
                 else if ( tag.icompare("</i") )                                 // ITALIC
                 {
-                    str_replace( ' ', '_', line_buffer.str );
-                    if ( line_buffer.str && line_buffer.str[0] != ' ' )
-                        out += '_' ;
-                    out += line_buffer;
-                    if ( line_buffer.str && line_buffer.length() > 1 && line_buffer.str[line_buffer.length()-1] != ' ' )
-                        out += '_' ;
+                    if ( !htmlUrls ) {
+                        str_replace( ' ', '_', line_buffer.str );
+                        if ( line_buffer.str && line_buffer.str[0] != ' ' )
+                            out += '_' ;
+                        out += line_buffer;
+                        if ( line_buffer.str && line_buffer.length() > 1 && line_buffer.str[line_buffer.length()-1] != ' ' )
+                            out += '_' ;
+                    } else {
+                        out += "<i>";
+                        out += line_buffer += "</i>";
+                    }
                     line_buffer.erase();
                 }
                 else

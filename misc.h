@@ -412,7 +412,7 @@ public:
     HtmlTagStripper() ;
 
     // interface
-    void strip( const basicString_t& in, basicString_t& out );
+    void strip( const basicString_t& in, basicString_t& out, bool htmlUrls =false );
 };
 //
 //////////////////////////////// end HTML TAG STRIPPER ////////////////////////////////////////
