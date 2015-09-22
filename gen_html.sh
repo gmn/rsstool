@@ -12,3 +12,5 @@ echo "rss show -n -H > $FILE"
 echo
 rss show -n -H > $FILE
 chmod 755 $FILE
+rsync -e ssh -r -v --progress --partial $FILE $(cat url)
+
