@@ -5,7 +5,7 @@ EE() {
     echo
     $@
 }
-URL=$(cat url)
+
 WEBD=/var/www/feeds/
 FILE=feed_$(date "+%Y%m%d_%H%M").html
 if [ -e $WEBD ]; then
@@ -20,5 +20,8 @@ echo
 rss show -n -H > $FILE
 chmod 755 $FILE
 
-EE rsync -e ssh -r -v --progress --partial $FILE ${URL}
-
+if [ -e './url' ]; then
+    EE rsync -e ssh -r -v --progress --partial $FILE $(cat url)
+else
+    echo consider filling out destination file named: url
+fi
