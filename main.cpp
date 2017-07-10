@@ -43,7 +43,7 @@ along with RSS Power Tool  If not, see <http://www.gnu.org/licenses/>.
 #include "tinyxml2.h"
 using namespace tinyxml2;
 
-extern "C" 
+extern "C"
 {
 #include <curl/curl.h>
 } // extern "C"
@@ -73,7 +73,7 @@ basicString_t db_path;
 basicString_t db_fullpath; // db_path/db_name
 basicString_t config_dir;
 basicString_t config_path; // '<config_dir>/config'
-basicString_t db_fullpath_explicit; // overrides regular detection. exit returning error if not valid db 
+basicString_t db_fullpath_explicit; // overrides regular detection. exit returning error if not valid db
 DBSqlite DBA; // db handle
 basicString_t username;
 basicString_t system_name;
@@ -82,7 +82,7 @@ const unsigned int rss_list_title_maxlen = 36;
 basicString_t download_path;
 int text_field_max_len = 0;
 int curl_timeout_sec = 20;
-                                // "libcurl-agent/1.0" 
+                                // "libcurl-agent/1.0"
 basicString_t curl_user_agent = "Mozilla/5.0 (Windows; U; Windows NT 5.1; en-US) AppleWebKit/525.13 (KHTML, like Gecko) Chrome/0.A.B.C Safari/525.13";
 
 bool enable_progress_meter = false;
@@ -103,7 +103,7 @@ bool enable_dashed_line = true;
 char dashed_line_char = 0;
 int feed_timeouts_limit = 5;
 
-basicString_t pager_path; 
+basicString_t pager_path;
 basicString_t browser_path;
 basicString_t text_browser_path;
 basicString_t instapaper_username;
@@ -152,7 +152,7 @@ struct globochem_s {
 { 0, 0 }
 };
 
-enum RSS_COMMAND_T 
+enum RSS_COMMAND_T
 {
     CMD_NULL = 0,
     CMD_IMPORT = 11,
@@ -190,7 +190,7 @@ struct Cmd_s
 {
     RSS_COMMAND_T code;
     const char * keyword;
-} command_list[] = 
+} command_list[] =
 {
 { CMD_IMPORT, "import" },
 { CMD_EXPORT, "export" },
@@ -254,7 +254,7 @@ const char * get_sysname() {
 const char * get_username() {
     return cuserid(0); // is process owner better than who logged in?
 }
-#else 
+#else
 const char * get_username() {
     return getlogin();
 }
@@ -302,7 +302,7 @@ static void print_usage()
 - type B) Sun, 27 Feb 2011 11:46:14 -0500
 - type C) Tue, 22 Mar 2013 14:37:01 GMT
 - type D) Sat, 9 Mar 2013 12:00:00 -0400
-- type E) Thu, 29 September 2011 07:02:46 GMT 
+- type E) Thu, 29 September 2011 07:02:46 GMT
           0123456789012345678
               |  |  ||
 the obvious way to tell the difference is to check the spaces.
@@ -330,24 +330,24 @@ static const char * get_sqldate( basicString_t& base )
     if ( Apoint == 10 && Bpoint != 4 && target.length() >= 19 ) {
         char * c = const_cast<char*>(target.str + 10);
         *c = ' '; // Make it mysql format. Don't worry about the trailing, mysql will truncate it
-        out.strncpy( target.str, 19 ); 
+        out.strncpy( target.str, 19 );
     }
 
     // probably already sql-style
-    else if ( base.length() == strlen( "2013-03-13 12:30:00" ) ) 
+    else if ( base.length() == strlen( "2013-03-13 12:30:00" ) )
     {
         out = base;
     }
 
     // type B/C
-    else if ( Bpoint == 4 ) 
+    else if ( Bpoint == 4 )
     {
         if ( strlen( target.str ) < strlen( "Sat, 9 Mar 2013 12:00:00" ) )
             error( "bad dates Indiana Jones\n" );
         // DAY
         const char * day = target.str + 5; // this one ought to be consistent;
         int day_len = ( *(day+1) < '0' || *(day+1) > '9' ) ? 1 : 2;
-        
+
         // MON
         int month_offset = 5 + day_len + 1;
 
@@ -366,30 +366,30 @@ static const char * get_sqldate( basicString_t& base )
                 break;
             }
         }
-        while ( months[i] ); 
+        while ( months[i] );
 
-        
+
         if ( i == 13 ) // aint typeB neither
             return 0;
 
         // definitely type B/C
-        // Sat, 9 Mar 2013 12:00:00 -0400 
+        // Sat, 9 Mar 2013 12:00:00 -0400
 
         int year_offset = 5 + day_len + 1 + mon_len + 1;
 
         // point to year
-        p = target.str + year_offset; 
+        p = target.str + year_offset;
         out.append( p, 4 ); // year YYYY
 
         // -
         out.append( "-",1);
-        
+
         // month digits: always 2chars w/ leading 0
         tmp.sprintf( "%02d-", i );
         out.append( tmp );
 
         // day
-        if ( 1 == day_len ) 
+        if ( 1 == day_len )
             out.append( "0" ); // leading zero
         out.append( day, day_len );
 
@@ -410,7 +410,7 @@ static const char * get_sqldate( basicString_t& base )
         return 0; // this will cause it to give us sqldate_now()
         //return BAD_DATE_STRING;
     }
-    
+
     //Assert( strlen(out.str) == strlen( "yyyy-mm-dd hh-mm-ss" ) && "Harold, The fucking Sql Date thing fucking broke again." );
 
     return out.str;
@@ -461,7 +461,7 @@ const char * unmake_dcdate( const char * sql )
     if ( out.length() < 11 )
         return out.str;
     out.str[10] = ' ';
-    out.strncpy( out.str, strlen( "xxxx-xx-xx xx:xx:xx" ) ); 
+    out.strncpy( out.str, strlen( "xxxx-xx-xx xx:xx:xx" ) );
     return out.str;
 }
 
@@ -518,19 +518,19 @@ void draw_dashed_line( char c ='-', int explen =0 )
     fflush(stdout);
 }
 
-// takes string of number, comma & hyphen and constructs an array of int out of it. 
+// takes string of number, comma & hyphen and constructs an array of int out of it.
 void translate_str_range( const char * str, buffer_t<unsigned int>& buf )
 {
     char * p = const_cast<char*>( str );
-    
+
     // must start with a number,',',' ', or can even start with '-' but it will be ignored
-    // spaces are skipped 
+    // spaces are skipped
 
     int dig = 0;
     int next;
     int range_start = -1;
 
-    do 
+    do
     {
         if ( !*p )
             break;
@@ -556,16 +556,16 @@ void translate_str_range( const char * str, buffer_t<unsigned int>& buf )
                 buf.add( (unsigned)dig );
             }
         }
-        else if ( *p == ' ' ) 
+        else if ( *p == ' ' )
         {
-            while ( *p && *p == ' ' ) 
+            while ( *p && *p == ' ' )
                 ++p;
         }
         else if ( *p == '-' ) // range
         {
             // case that '-10' is first part of string
             if ( 0 != dig )
-                range_start = dig;           
+                range_start = dig;
             ++p; // move past the '-'
         }
         else if ( *p == ',' ) // next one
@@ -626,7 +626,7 @@ basicString_t &  translate_unknown_args( const char * arg, const char * matching
         }
     }
     else
-    { 
+    {
         translate_str_range( arg, ids );
     }
 
@@ -637,15 +637,15 @@ basicString_t &  translate_unknown_args( const char * arg, const char * matching
     if ( 0 == ids.length() )
         return out;
 
-    // sort 
+    // sort
     quicksort<unsigned int>( ids.data, ids.length() );
 
 
     // range sets
     unsigned int range_counter = 0;
-    cppbuffer_t<uiPair_t> ranges; 
+    cppbuffer_t<uiPair_t> ranges;
 
-    // single matches 
+    // single matches
     buffer_t<unsigned int> single_matches;
 
 
@@ -664,7 +664,7 @@ basicString_t &  translate_unknown_args( const char * arg, const char * matching
 
                 while ( i < ids.length() - 1 )
                 {
-                    if ( ids.data[i+1] == ids.data[i]+1 ) 
+                    if ( ids.data[i+1] == ids.data[i]+1 )
                         ++i;
                     else
                         break;
@@ -702,13 +702,13 @@ basicString_t &  translate_unknown_args( const char * arg, const char * matching
             out.append( buf.sprintf( "(%s >= %d and %s <= %d)", matching_col, ranges[i].start, matching_col, ranges[i].stop ).str );
         }
     }
-    
+
     return out += ")";
 }
 
 
 static char * trim_white_space( char * str )
-{   
+{
     char * p = str;
     while ( *p != '\0' && (*p == ' '||*p == '\t') )
         ++p;
@@ -718,7 +718,7 @@ static char * trim_white_space( char * str )
 
     int set = 0;
     do
-    {  
+    {
         long long end = reinterpret_cast<long long>(e-1);
         long long beg = reinterpret_cast<long long>(p);
         if ( end <= beg )
@@ -752,7 +752,7 @@ static char * get_input_raw()
             break;
     }
     while (1);
-    buf[INPUT_SZ-1] = 0; 
+    buf[INPUT_SZ-1] = 0;
     return buf;
 }
 
@@ -776,7 +776,7 @@ const char * prompt( const char * question, int yes_no =1, int def_yes =0 )
     }
 
     const char * ans = get_input();
-    
+
     if ( yes_no ) {
         if ( strcmp( ans, "y" ) == 0 || strcmp( ans, "Y" ) == 0 ) {
             out.set( d_yes );
@@ -833,7 +833,7 @@ struct Item_t
     basicString_t author;
     basicString_t hash;
 
-    void clear() { 
+    void clear() {
         feed_id = 0;
         title.set( "" );
         description.set( "" );
@@ -870,10 +870,10 @@ private:
         basicString_t buf;
 
         int x_count = (sqldate.length()!=0u) + (title.length()!=0u) + (media_url.length()!=0u||item_url.length()!=0u);
-        switch ( x_count ) 
+        switch ( x_count )
         {
-        case 3: 
-            buf = sqldate.substr(0,10).str; 
+        case 3:
+            buf = sqldate.substr(0,10).str;
             buf += title;
             buf += media_url;
             buf += item_url;
@@ -881,7 +881,7 @@ private:
         case 2:
             buf.sprintf( "%d", feed_id );
             if ( sqldate.length() )
-                buf += sqldate.substr(0,10).str; 
+                buf += sqldate.substr(0,10).str;
             if ( title.length() )
                 buf += title;
             if ( media_url.length() )
@@ -900,52 +900,52 @@ private:
 
 struct FeedBuffer_t : public cppbuffer_t<Feed_t*>
 {
-    FeedBuffer_t() 
+    FeedBuffer_t()
     { }
 
-    void startNew() { 
+    void startNew() {
         push_back( new Feed_t );
     }
 
     void setTitle( const char * title ) {
         if ( count() == 0 )
-            push_back( new Feed_t ); 
+            push_back( new Feed_t );
         (*this)[ this->count()-1 ]->title = title;
     }
 
     void setXmlUrl( const char *xml ) {
         if ( count() == 0 )
-            push_back( new Feed_t ); 
+            push_back( new Feed_t );
         (*this)[ this->count()-1 ]->xmlUrl = xml;
     }
 
     void setHtmlUrl( const char *url ) {
         if ( count() == 0 )
-            push_back( new Feed_t ); 
+            push_back( new Feed_t );
         (*this)[ this->count()-1 ]->htmlUrl = url;
     }
 
     void setDescription( const char * des ) {
         if ( count() == 0 )
-            push_back( new Feed_t ); 
+            push_back( new Feed_t );
         (*this)[ this->count()-1 ]->description = des;
     }
 
     void setType( const char * _type ) {
         if ( count() == 0 )
-            push_back( new Feed_t ); 
+            push_back( new Feed_t );
         (*this)[ this->count()-1 ]->type = _type;
     }
 
     void setDisabled( const char * _type ) {
         if ( count() == 0 )
-            push_back( new Feed_t ); 
+            push_back( new Feed_t );
         (*this)[ this->count()-1 ]->disabled = atoi(_type);
     }
 
     void setPriority( const char * _type ) {
         if ( count() == 0 )
-            push_back( new Feed_t ); 
+            push_back( new Feed_t );
         (*this)[ this->count()-1 ]->priority = atoi(_type);
     }
 
@@ -956,9 +956,9 @@ struct FeedBuffer_t : public cppbuffer_t<Feed_t*>
     }
 };
 
-// turns out I have been writing too much bash scripting. 
+// turns out I have been writing too much bash scripting.
 // One does not need to worry about system escape characters using regular fopen()
-basicString_t * escape_string( const char * str, basicString_t * reuse=0 ) 
+basicString_t * escape_string( const char * str, basicString_t * reuse=0 )
 {
     static const char esc[] = { '`','$','\\','/','\'',']','[','(',')','{','}',' ',',','!','@','#','%','^','&','*',':',';','?','"','~',0};
 
@@ -1016,7 +1016,7 @@ const char * cmdline_arg( const char * cmd )
     for ( i = 1; i < myargc; i++ ) {
         if ( ! strcmp( cmd, myargv[i] ) ) {
             if ( (i+1) < myargc )
-            {  
+            {
                 // check for leading '-', if none, return it
                 const char * p = myargv[ i + 1 ];
                 if ( *p != '-' )
@@ -1030,11 +1030,11 @@ const char * cmdline_arg( const char * cmd )
 }
 
 // wrapper for check_cmdline & cmdline_arg
-const char * check_cmdline_return_arg( const char * parm ) 
+const char * check_cmdline_return_arg( const char * parm )
 {
     if ( check_cmdline( parm ) ) {
         const char * A = cmdline_arg( parm );
-        if ( A ) 
+        if ( A )
             return A;
     }
     return 0;
@@ -1043,7 +1043,7 @@ const char * check_cmdline_return_arg( const char * parm )
 RSS_COMMAND_T is_command( const char *frag )
 {
     register int i = 0;
-    do 
+    do
     {
         if ( strcmp( command_list[i].keyword, frag ) == 0 )
         {
@@ -1058,7 +1058,7 @@ RSS_COMMAND_T is_command( const char *frag )
 const char * is_global_flag( const char * maybe )
 {
     register int i = 0;
-    do 
+    do
     {
         if ( strcmp( global_options[i].opt, maybe ) == 0 )
         {
@@ -1070,11 +1070,11 @@ const char * is_global_flag( const char * maybe )
     return 0;
 }
 
-// format: exename [options] [command] [arg1[arg2][...]] 
+// format: exename [options] [command] [arg1[arg2][...]]
 static void parse_arguments( int argc, char ** argv )
 {
     myargc = argc;
-    myargv = argv;  
+    myargv = argv;
 
     // get exename
     const char * p = strrchr( argv[0], '/' );
@@ -1089,7 +1089,7 @@ static void parse_arguments( int argc, char ** argv )
     /* we check arg2..N until:
         - we run out of args
         - one of the args does not match available global commands
-    
+
         once we hit a valid command, we know that global args are done.
         - if we hit the end or if one of the flags doesn't match available global flags, print_usage and exit
     */
@@ -1134,7 +1134,7 @@ static void parse_arguments( int argc, char ** argv )
                 }
                 printf( "using config: \"%s\"\n", config_path.str );
                 ++i;
-            } else if ( strcmp( argv[i], "-d" ) == 0 ) { 
+            } else if ( strcmp( argv[i], "-d" ) == 0 ) {
                 download_path = check_cmdline_return_arg( "-d" );
                 if ( download_path.length() == 0 ) {
                     error( "please provide download path." );
@@ -1143,7 +1143,7 @@ static void parse_arguments( int argc, char ** argv )
                 ++i;
             }
         }
-        else if ( (code=is_command( argv[i] )) ) 
+        else if ( (code=is_command( argv[i] )) )
         {
             run_code = code;
 
@@ -1164,7 +1164,7 @@ static void parse_arguments( int argc, char ** argv )
 
 int CreateDB()
 {
-    const char * db_calls[] = { 
+    const char * db_calls[] = {
         "CREATE TABLE feed (                    \
         id INTEGER PRIMARY KEY NOT NULL,        \
         title TEXT,                             \
@@ -1179,7 +1179,7 @@ int CreateDB()
         disabled char(1) default 0,             \
         priority INTEGER default 5,             \
         time_reading REAL default 0.0           \
-        );",   
+        );",
 
         "CREATE TABLE item (                    \
         id INTEGER PRIMARY KEY NOT NULL,        \
@@ -1202,7 +1202,7 @@ int CreateDB()
         item_id INTEGER,                        \
         feed_id INTEGER                         \
         );",
-    
+
         /* save reports of recent updates to facilitate easy viewing of just those items */
         "CREATE TABLE reports(                  \
         id INTEGER PRIMARY KEY NOT NULL,        \
@@ -1243,7 +1243,7 @@ int CreateDB()
     {
         const char * db_cmd = db_calls[ call_num ];
 
-        // initialize to alloc enough memory, but wipe it 
+        // initialize to alloc enough memory, but wipe it
         buf.set( db_cmd );
         unsigned int before_len = buf.length();
         buf.erase();
@@ -1263,7 +1263,7 @@ int CreateDB()
 
         ++call_num;
     }
-    
+
     return 0;
 }
 
@@ -1275,7 +1275,7 @@ static int try_setup_explicit_db()
 #if 0
     // if file doesn't exist, exit with error
     const char * p = file_exists( db_fullpath_explicit.str );
-    if ( !p ) 
+    if ( !p )
         error( "explicit db: \"%s\" doesn't exist or is not readable\n", db_fullpath_explicit.str );
 #endif
 
@@ -1293,7 +1293,7 @@ static void write_default_config()
     // download_path, defaults to: "/%/username/Downloads"
 
     basicString_t bar( "###########################################################" );
-    basicString_t conf(bar); 
+    basicString_t conf(bar);
     conf += "\n#\n# Configuration for RSS Power Tool\n#\n# Uncomment options below to set to user-defined values\n#\n";
     conf += bar + "\n\n";
 
@@ -1338,7 +1338,7 @@ static void write_default_config()
 "# A similar syncronization naming strategy can be use with your feeds masterlist\n"
 "# This allows you to sync feeds across multiple computers. Simply unset the\n"
 "# sync_feeds_path variable. It will default to searching in the config_path,\n"
-"# unless another path is provided. Note it doesn't ensure sycnronized feed\n" 
+"# unless another path is provided. Note it doesn't ensure sycnronized feed\n"
 "# items as these may change between updates depending on each feed.\n"
 "#\n"
 "# sync_feeds_path = config_path\n"
@@ -1359,15 +1359,15 @@ static void read_config()
     // X instapaper_password
 
     // - download_path
-    // - rss_list_title_maxlen 
+    // - rss_list_title_maxlen
     // - text_field_max_len --impose max-lengths for large description & title elements. 0 is no limit;
-    // - max_reports_save 
-    // - enable_progress_meter 
-    // - rss_show_description_len 
-    // - config_strip_html_on 
-    // - empty_date_set_to_current_time 
+    // - max_reports_save
+    // - enable_progress_meter
+    // - rss_show_description_len
+    // - config_strip_html_on
+    // - empty_date_set_to_current_time
     // - update_title_len
-    // X feed_timeouts_limit 
+    // X feed_timeouts_limit
     // - disable_accelerated_menus
 
 
@@ -1439,7 +1439,7 @@ static void read_config()
 
         delete tokens;
     }
-    
+
     delete lines;
 }
 
@@ -1454,7 +1454,7 @@ static void setup_db_and_config()
     username = get_username();
 
     // default path to store config and database
-    if ( !config_dir.str || !*config_dir.str ) 
+    if ( !config_dir.str || !*config_dir.str )
     {
         const char * dir = 0;
         switch ( *system_name.str )
@@ -1471,7 +1471,7 @@ static void setup_db_and_config()
     }
 #endif
 
-    username = getenv( "USER" ) ? getenv( "USER" ) : getenv( "LOGNAME" ); 
+    username = getenv( "USER" ) ? getenv( "USER" ) : getenv( "LOGNAME" );
 
     // this should be the most portable
     if ( !config_dir.str || !*config_dir.str ) {
@@ -1488,7 +1488,7 @@ static void setup_db_and_config()
         config_path.sprintf( "%s/config", config_dir.str );
 
 
-    // 
+    //
     //  Config file setting
     //
 
@@ -1497,8 +1497,8 @@ static void setup_db_and_config()
         write_default_config();
     }
     else {
-        // or else read 
-        read_config(); 
+        // or else read
+        read_config();
     }
 
 
@@ -1506,7 +1506,7 @@ static void setup_db_and_config()
     if ( db_path.length() == 0 )
         db_path = config_dir;
 
-    // if db_fullpath_explicit is set, 
+    // if db_fullpath_explicit is set,
     try_setup_explicit_db();
 
     // hasnt been set yet, set to default
@@ -1515,7 +1515,7 @@ static void setup_db_and_config()
 
     // if database doesn't exist, prompt user to create new, empty one
     const char * p_expanded = file_exists( db_fullpath.str );
-    if ( p_expanded ) 
+    if ( p_expanded )
     {
         // set to expanded path
         db_fullpath = p_expanded;
@@ -1523,9 +1523,9 @@ static void setup_db_and_config()
         // set in DBA
         DBA.setName( db_fullpath.str );
     }
-    else 
+    else
     {
-        // prompt user: 
+        // prompt user:
         printf( "database not found. " );
         fflush(stdout);
 
@@ -1554,7 +1554,7 @@ static void setup_db_and_config()
     //  getenv("PATH")
     // if found, set fullpath as config_variable
 
-    
+
     // get console dimensions
     struct winsize w;
     memset( &w, 0, sizeof(struct winsize) );
@@ -1623,7 +1623,7 @@ int scrapeOpml( const XMLElement * elt, FeedBuffer_t& FB )
     basicString_t TYPE( "type" );
     basicString_t PRIORITY( "priority" );
 
-    for ( const XMLElement * sib = elt; sib; sib=sib->NextSiblingElement() ) 
+    for ( const XMLElement * sib = elt; sib; sib=sib->NextSiblingElement() )
     {
         const char * val = sib->Value();
         if ( !val )
@@ -1631,7 +1631,7 @@ int scrapeOpml( const XMLElement * elt, FeedBuffer_t& FB )
         if ( OUTLINE.icompare(val) && (sib->FindAttribute( "xmlUrl" ) || sib->FindAttribute( "htmlUrl" )) )
         {
             FB.startNew();
-            for( const XMLAttribute *attr = sib->FirstAttribute(); attr; attr=attr->Next() ) 
+            for( const XMLAttribute *attr = sib->FirstAttribute(); attr; attr=attr->Next() )
             {
                 val = attr->Name();
                 if ( !val )
@@ -1664,7 +1664,7 @@ int scrapeOpml( const XMLElement * elt, FeedBuffer_t& FB )
 
 static size_t _storeUrl( void *stringBuffer, size_t size, size_t nmemb, void * VoidObject )
 {
-    if ( size > 0 && nmemb > 0 ) 
+    if ( size > 0 && nmemb > 0 )
     {
         // FIXME: use C++ cast
         basicString_t * returnData = (basicString_t *) VoidObject;
@@ -1683,13 +1683,13 @@ int get_url_with_curl( const char * url, basicString_t& returnData, bool follow 
 
     curl_easy_setopt( curl, CURLOPT_URL, url );
 
-    /* example.com is redirected, so we tell libcurl to follow redirection */ 
+    /* example.com is redirected, so we tell libcurl to follow redirection */
     if ( follow )
         curl_easy_setopt( curl, CURLOPT_FOLLOWLOCATION, 1L );
     else
         curl_easy_setopt( curl, CURLOPT_FOLLOWLOCATION, 0L );
 
-    /* send all data to this function  */ 
+    /* send all data to this function  */
     curl_easy_setopt( curl, CURLOPT_WRITEFUNCTION, _storeUrl );
 
     /* pass in the obj as void* */
@@ -1707,17 +1707,17 @@ int get_url_with_curl( const char * url, basicString_t& returnData, bool follow 
     /* */
     curl_easy_setopt( curl, CURLOPT_TIMEOUT, curl_timeout_sec );
 
-    /* Perform the request, res will get the return code */ 
+    /* Perform the request, res will get the return code */
     CURLcode res = curl_easy_perform( curl );
 
-    /* Check for errors */ 
+    /* Check for errors */
     if ( res != CURLE_OK ) {
         warning( "curl_easy_perform() failed: %s\n", curl_easy_strerror(res) );
         curl_easy_cleanup( curl );
         return 0;
     }
 
-    /* always cleanup */ 
+    /* always cleanup */
     curl_easy_cleanup( curl );
     curl_global_cleanup();
 
@@ -1781,7 +1781,7 @@ const char * get_last_forwarded_url( const char * uri )
 
 
 
-// 
+//
 int have_item( Item_t& item )
 {
     /*
@@ -1789,10 +1789,10 @@ int have_item( Item_t& item )
      *
      * We check for items that that have: the same date (just the date part), AND same title
      *
-     * if this item doesn't have date || title, we start checking: decription, media_url, item_url, content.  
+     * if this item doesn't have date || title, we start checking: decription, media_url, item_url, content.
      *  We must match against something, else the gesture would be futile. The goal is to match against 2 fields.
      *
-     * if the item exists, but this particular item.feed_id is not noted in item_feeds.item_id = item_id, 
+     * if the item exists, but this particular item.feed_id is not noted in item_feeds.item_id = item_id,
      *  an entry is added into item_feeds, return 1 (have item)
      *
      *
@@ -1817,27 +1817,27 @@ int have_item( Item_t& item )
      *
      * key: S=same, N=not same, -=feed_id doesnt matter, M=match, x,d=does not match
      *
-     * there are 4 conditions where the item matches, and 12 where it does not, so it 
+     * there are 4 conditions where the item matches, and 12 where it does not, so it
      *  follows to look only for matches, none being found we know we have a new item.
-     * The 4 matching coditions are: 
+     * The 4 matching coditions are:
      *      S   x       M       M       M
      *      S   M       x       M       M
      *      S   M       M       x       M
      *      S   M       M       M       x
      *
-     * Therefor we do: 
-     *  - determine what fields our item has. All items have feed_id; media_url+item_url are concatenated. 
+     * Therefor we do:
+     *  - determine what fields our item has. All items have feed_id; media_url+item_url are concatenated.
      *  - does our item have at least 2 of the 3: (date,title,item_url+media_url)? If not, Item is unique.
      *  - If our item has 3 of 3, we do: select id, substr(sqldate,0,11) as date,title,item_url,media_url from item where date='%s',title='%s',item_url='%s',media_url='%s'.  If numRows() > 0, we have a match, else unique
      *  - else our item has 2 of 3, we must match the 2 we have & feed_Id. If those match => MATCH, else Unique
      *
      * to simplify this process, we'll do all the member determination in get_hash(), where in all the valid cases,
-     *  a hash will be generated by concatenating the appropriate fields together, or 0 when when one of the valid 
+     *  a hash will be generated by concatenating the appropriate fields together, or 0 when when one of the valid
      *  cases are not met.  hash=0 items are always unique.  In order for an item to possess some form of discernable
      *  identify, it must have 3 out of the 4 fields present. Otherwise an item does not possess sufficient enough
      *  information to justify an hashable identity.  The order which we look is date+title+url first, failing one
      *  of those, we do any 2 + feed_id.  So the hashes will always be uniform according to this flow-chart.
-     */ 
+     */
 
 
     // safety first
@@ -1848,7 +1848,7 @@ int have_item( Item_t& item )
 
     basicString_t query;
     basicString_t buf;
-    basicString_t url; 
+    basicString_t url;
     basicString_t& title = item.title;
     basicString_t date = item.sqldate.substr(0,10);
 
@@ -1866,29 +1866,29 @@ int have_item( Item_t& item )
     bool found = false;
     DBResult * res = 0;
 
-    // the 4 matching conditions 
-    if ( title.length() && date.length() && url.length() ) 
+    // the 4 matching conditions
+    if ( title.length() && date.length() && url.length() )
     {
         query = buf.sprintf( "select feed_id,item_id, substr(sqldate,0,11) as date from item_feeds,item where item_feeds.item_id=item.id and (date='%s' and title='%s' %s);", date.str, title.str, url.str );
         res = DBA( query.str );
         found = res != 0 && res->numRows() > 0;
     }
 
-    if ( !found && title.length() && date.length() ) 
+    if ( !found && title.length() && date.length() )
     {
         query = buf.sprintf( "select feed_id,item_id, substr(sqldate,0,11) as date from item_feeds,item where item_feeds.item_id=item.id and (feed_id=%d and date='%s' and title='%s');", item.feed_id, date.str, title.str );
         res = DBA( query.str );
         found = res != 0 && res->numRows() > 0;
     }
 
-    if ( !found && title.length() && url.length() ) 
+    if ( !found && title.length() && url.length() )
     {
         query = buf.sprintf( "select feed_id,item_id, substr(sqldate,0,11) as date from item_feeds,item where item_feeds.item_id=item.id and (feed_id=%d and title='%s' %s);", item.feed_id, title.str, url.str );
         res = DBA( query.str );
         found = res != 0 && res->numRows() > 0;
     }
 
-    if ( !found && date.length() && url.length() ) 
+    if ( !found && date.length() && url.length() )
     {
         query = buf.sprintf( "select feed_id,item_id, substr(sqldate,0,11) as date from item_feeds,item where item_feeds.item_id=item.id and (feed_id=%d and date='%s' %s);", item.feed_id, date.str, url.str );
         res = DBA( query.str );
@@ -1993,7 +1993,7 @@ int insert_item( Item_t& item )
         DBA( query.sprintf( "insert into item_feeds(item_id,feed_id) values (%d, %d);", item_id, item.feed_id ).str );
         return item_id;
     }
-    
+
     return 0;
 }
 
@@ -2030,9 +2030,9 @@ int finish_conditional_item_insert( Item_t& item, int * high_item_id, basicStrin
     item.gen_hash();
 
     // add
-    if ( !have_item( item ) ) 
+    if ( !have_item( item ) )
     {
-        if ( insert_item( item ) ) 
+        if ( insert_item( item ) )
         {
             ++(*high_item_id);
 
@@ -2041,7 +2041,7 @@ int finish_conditional_item_insert( Item_t& item, int * high_item_id, basicStrin
                 if ( saved_ids->length() )
                     saved_ids->append( "," );
                 basicString_t buf;
-                buf.sprintf( "%d", *high_item_id ); 
+                buf.sprintf( "%d", *high_item_id );
                 saved_ids->append( buf );
             }
 
@@ -2211,14 +2211,14 @@ int insert_items_rss( const XMLElement * elt, int feed_id, basicString_t * saved
 
     // see if RDF
     // FIXME: some known-good rss feeds are failing here
-    if ( ! channel->FirstChildElement( "item" ) ) 
+    if ( ! channel->FirstChildElement( "item" ) )
     {
-        channel = elt; // channel set to parent 
-        
+        channel = elt; // channel set to parent
+
         elt = channel->FirstChildElement( "item" );
         if ( !elt ) {
             elt = channel->FirstChildElement( "rss:item" );
-            if ( elt ) 
+            if ( elt )
                 item_name = "rss:item";
         }
         if ( !elt || (!ITEM.icompare(elt->Value()) && !RSS_ITEM.icompare(elt->Value())) ) {
@@ -2285,18 +2285,18 @@ int insert_items_rss( const XMLElement * elt, int feed_id, basicString_t * saved
                 if ( text )
                     item.title = text->Value();
             }
-            else if ( DESCRIPTION.icompare(eltName) ) 
+            else if ( DESCRIPTION.icompare(eltName) )
             {
                 // no constraint: will override other description; higher priority
                 const XMLNode * text = sub->FirstChild();
-                if ( text ) 
+                if ( text )
                     item.description = text->Value();
             }
             else if ( ITUNES_SUMMARY.icompare(eltName) || ITUNES_SUBTITLE.icompare(eltName) )
             {
                 if ( ! item.description.length() ) {
                     const XMLNode * text = sub->FirstChild();
-                    if ( text ) 
+                    if ( text )
                         item.description = text->Value();
                 }
             }
@@ -2371,12 +2371,12 @@ int check_timeouts( int feed_id )
     DBValue * v = res ? res->FindByNameFirstRow( "timeouts" ) : 0;
     int to = v ? v->getInt() : 0;
 
-    // increment and note 
+    // increment and note
     DBA( buf.sprintf( "update feed set timeouts = %d where id = %d;", ++to, feed_id ).str );
 
     // reached limit
     if ( to >= feed_timeouts_limit )
-        return 0; 
+        return 0;
 
     return to;
 }
@@ -2402,12 +2402,12 @@ int update_timeouts_disable_if_needed( int feed_id )
         return to;
     }
 
-    
+
     // disable feed
     // set feed.type = "bad feed or unrecognized type";
     basicString_t buf;
     DBA( buf.sprintf("update feed set disabled = 1, errmsg = 'Feed hit timeout limit. Bad link or unrecognized' where id = %d;", feed_id ).str );
-    
+
     warning( "Feed disabled after %d failed attempts.  '%s enable %d' to reset.  '%s dump -f %d' to view url contents.", feed_timeouts_limit, exename.str, feed_id, exename.str, feed_id );
 
     return 0;
@@ -2437,9 +2437,9 @@ int insert_any_new_items( const XMLDocument& document, int feed_id, int * status
         return insert_items_rss( elt, feed_id, saved_ids, high_item_id );
 
 
-    if ( status ) 
+    if ( status )
         *status = 0; // fell through to here, signal bad feed error
-    
+
     update_timeouts_disable_if_needed( feed_id );
     return 0; // 0 items fetched
 }
@@ -2449,7 +2449,7 @@ int insert_feed_no_matter_what( Feed_t& feed )
     basicString_t query;
 
     // save original for printing
-    basicString_t titleOrig = feed.title; 
+    basicString_t titleOrig = feed.title;
     DBA.fixQuotes( feed.title );
     DBA.fixQuotes( feed.htmlUrl );
     DBA.fixQuotes( feed.description );
@@ -2486,18 +2486,18 @@ int insert_feed_if_not_exist( Feed_t& feed )
     DBResult * res = DBA( query.str );
 
     // if no match, insert
-    if ( !res || res->numRows() == 0 ) 
+    if ( !res || res->numRows() == 0 )
     {
         return insert_feed_no_matter_what( feed );
     }
-    
+
     return 0;
 }
 
 inline const char * __get1stRowIfExists( const char *s, DBResult *R )
 {
     DBValue * v = R->FindByNameFirstRow( s );
-    if ( v ) 
+    if ( v )
         return v->getString();
     return 0;
 }
@@ -2506,7 +2506,7 @@ const char * __getIfExists( const char * s, DBRow * R )
 {
     static char buf[2] = { ' ', 0 };
     DBValue * v = R->FindByName( s );
-    if ( v ) 
+    if ( v )
         return v->getString();
     return buf;
 }
@@ -2559,7 +2559,7 @@ Feed_t * feed_from_document( XMLDocument& document )
 
     // +++ RSS +++
     XMLElement * top = document.FirstChildElement( "rss" );
-    if ( top ) 
+    if ( top )
     {
         /*
         rss:
@@ -2652,7 +2652,7 @@ Feed_t * feed_from_document( XMLDocument& document )
                 if ( attr )
                     feed.htmlUrl = attr->Value();
             }
-            else 
+            else
             {
                 const XMLAttribute * attr = elt->FindAttribute( "rel" );
                 if ( attr && (strcmp( attr->Value(), "self" ) == 0 || strcmp( attr->Value(), "alternate" ) == 0) ) {
@@ -2759,7 +2759,7 @@ static void turn_off_pager()
 }
 
 static void wait_for_pager(void)
-{   
+{
     fflush(stdout);
     fflush(stderr);
 
@@ -2767,10 +2767,10 @@ static void wait_for_pager(void)
     close(1);
     close(2);
 
-    int status; 
+    int status;
     pid_t waiting;
     while ((waiting = waitpid(pager_pid, &status, 0)) < 0 && errno == EINTR)
-        ; 
+        ;
 }
 
 static void start_pager()
@@ -2788,23 +2788,23 @@ static void start_pager()
     // check terminal dimensions
     // ...
 
-    // if output lines do not exceed terminal lines, 
+    // if output lines do not exceed terminal lines,
     // it would be nice to return instead of invoking pager
     // ...
 
 
     // create a pipe:  0 = read end, 1 = write end
     if ( pipe(pipe_fd) < 0 ) {
-        error( "pipe error\n" ); 
+        error( "pipe error\n" );
     }
 
-    // duplicate process 
+    // duplicate process
     if ( (pager_pid = fork()) < 0 ) {
         error( "fork error\n" );
     }
 
     // when you fork, you also fork the pipe ID integers.
-    // We'll connect the parent's output, to input on the child's side 
+    // We'll connect the parent's output, to input on the child's side
 
     // parent; parent process gets child's pid
     if ( pager_pid > 0 )
@@ -2815,27 +2815,27 @@ static void start_pager()
         // pipe file descriptor can't be equal to the fd it is duplicating
         // canonical fd are: 0 = stdin, 1 = stdout, 2 = stderr
         if ( pipe_fd[1] != 1 )
-        {   
-            // send stdout of the parent process to the pipe leading to the child pager process 
+        {
+            // send stdout of the parent process to the pipe leading to the child pager process
             if ( dup2( pipe_fd[1], 1 ) != 1 ) {
-                error( "dup2 error\n" ); 
+                error( "dup2 error\n" );
             }
             // pipe stderr to it as well
             if ( isatty(2) ) {
                 if ( dup2( pipe_fd[1], 2 ) != 2 ) {
-                    error( "dup2 error\n" ); 
+                    error( "dup2 error\n" );
                 }
             }
-            // now that stdout goes to the pipe, close the pipe fd; 
+            // now that stdout goes to the pipe, close the pipe fd;
             // we dont need 2 output handles to same stream
-            close( pipe_fd[1] ); 
+            close( pipe_fd[1] );
         }
-    
+
         // this makes sure the parent terminates after the pager
         atexit(wait_for_pager);
     }
 
-    // child; child process gets pid 0 
+    // child; child process gets pid 0
     else
     {
         // close write end; child is reading only
@@ -2843,17 +2843,17 @@ static void start_pager()
 
         // cause all read() from stdin to come from pipe from parent instead of stdin
         if ( pipe_fd[0] != 0 )
-        {   
+        {
             if ( dup2( pipe_fd[0], 0 ) != 0 ) {
-                error( "dup2 error\n" ); 
+                error( "dup2 error\n" );
             }
             close( pipe_fd[0] );
         }
 
         // setup pager
-        // can be overridden by env vars: RSS_PAGER, then PAGER 
+        // can be overridden by env vars: RSS_PAGER, then PAGER
         pager = getenv( "RSS_PAGER" );
-        if ( !pager ) 
+        if ( !pager )
             pager = getenv( "PAGER" );
         if ( !pager )
             pager = pager_path.str; // less, more, or cat
@@ -2871,7 +2871,7 @@ static void start_pager()
         // replaces the current process image with a new process image
         // the child of the fork becomes the pager, with stdin coming from parent
         if ( execlp( pager, argv0, (char*) 0 ) < 0) {
-            error( "execl error\n" ); 
+            error( "execl error\n" );
         }
     }
 }
@@ -2885,7 +2885,7 @@ basicString_t& gen_rss_feed( DBResult * itemRes, const char * title =0, const ch
     // tiny xml doc handle
     XMLDocument doc;
 
-    /* xml version="1.0" encoding="UTF-8" */ 
+    /* xml version="1.0" encoding="UTF-8" */
     doc.InsertEndChild( doc.NewDeclaration() );
 
     /* rss version="2.0" */
@@ -2939,18 +2939,18 @@ basicString_t& gen_rss_feed( DBResult * itemRes, const char * title =0, const ch
 
     // attach all the items
 #define ITEM_STRING_SZ 8
-    
+
     struct sixpack {
         basicString_t val[ITEM_STRING_SZ];
         basicString_t& operator[] ( unsigned int i ) {
             return val[i];
         }
-        void clear() { 
+        void clear() {
             for ( unsigned int i = 0 ; i < ITEM_STRING_SZ; i++ ) { val[i].erase(); }
         }
     } six;
 
-    const char * attr[] = { "title", "description", "pubDate", "guid", 
+    const char * attr[] = { "title", "description", "pubDate", "guid",
                         "link", "content:encoded", "dc:creator", "dc:date" };
 
     DBRow * row;
@@ -2965,14 +2965,14 @@ basicString_t& gen_rss_feed( DBResult * itemRes, const char * title =0, const ch
         six[5] = __DontGetIfNotExist( "content", row );
         six[6] = __DontGetIfNotExist( "author", row );
         six[7] = __DontGetIfNotExist( "sqldate", row );
-    
+
         // item
         XMLElement * item = doc.NewElement( "item" );
         channel->InsertEndChild( item );
 
-        for ( int i = 0 ; i < ITEM_STRING_SZ ; i++ ) 
+        for ( int i = 0 ; i < ITEM_STRING_SZ ; i++ )
         {
-            if ( six[i].length() ) 
+            if ( six[i].length() )
             {
                 // only get dc:date if we dont have pubDate
                 if ( 7 == i ) {
@@ -3027,7 +3027,7 @@ int rss_deleteItem( int item_id )
     //  and sets: deleted = 1
     buf.sprintf( "update item set content = '', description = '', author = '', hash = '', tag = '', pubDate = '', deleted = 1 where id = %d;", item_id );
     DBA( buf.str );
-    
+
     return 1;
 */
 }
@@ -3120,14 +3120,14 @@ int bookmark_xml_to_db( const XMLDocument& document )
         }
         timestamp.sprintf( "%s %02d:%02d:%02d", timestamp_base.str, hours, minutes, seconds );
 
-        // in rss feed: 
-        //  "title", "description", "pubDate", "guid", 
+        // in rss feed:
+        //  "title", "description", "pubDate", "guid",
         //  "link", "content:encoded", "dc:creator", "dc:date"
         const XMLElement * sub = field->FirstChildElement( "pubDate" );
         if ( sub )
         {
             const XMLNode * text = sub->FirstChild();
-            if ( text ) 
+            if ( text )
                 pubDate = text->Value();
         }
 
@@ -3135,7 +3135,7 @@ int bookmark_xml_to_db( const XMLDocument& document )
         {
             sub = field->FirstChildElement( "dc:date" );
             const XMLNode * text = sub->FirstChild();
-            if ( !text ) 
+            if ( !text )
                 continue;
             dc_date = unmake_dcdate( text->Value() );
         }
@@ -3143,15 +3143,15 @@ int bookmark_xml_to_db( const XMLDocument& document )
         if ( !pubDate.length() || !dc_date.length() )
             continue;
 
-        // title 
+        // title
         sub = field->FirstChildElement( "title" );
         if ( !sub )
             continue;
         const XMLNode * text = sub->FirstChild();
-        if ( !text ) 
+        if ( !text )
             continue;
         title = text->Value();
-            
+
         // have to query to get the ids. might not have them
         query.sprintf( "select feed_id,item_id from item_feeds,item where item_feeds.item_id = item.id and item.title = '%s'", title.str );
         if ( pubDate.length() )
@@ -3239,7 +3239,7 @@ int rss_view()
     if ( check_cmdline("-h") || check_cmdline("--help") )
         return rss_view_usage();
 
-    if ( cmd_args.count() != 1 ) 
+    if ( cmd_args.count() != 1 )
         return rss_view_usage( "what feed id do you wish to view?\n" );
 
     int feed_id = atoi( cmd_args[0]->str );
@@ -3253,7 +3253,7 @@ int rss_view()
 
     // start output item
     draw_dashed_line();
-    printf( "%-14s%d\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%d\n%-14s%d\n%-14s%d\n", "Feed id:", F.id, "Title:", F.title.str, "Description:", F.description.str, "xmlUrl:", F.xmlUrl.str, "htmlUrl:", F.htmlUrl.str, "type:",F.type.str, "disabled:",F.disabled, "timeouts:", F.timeouts, "priority:", F.priority ); 
+    printf( "%-14s%d\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%d\n%-14s%d\n%-14s%d\n", "Feed id:", F.id, "Title:", F.title.str, "Description:", F.description.str, "xmlUrl:", F.xmlUrl.str, "htmlUrl:", F.htmlUrl.str, "type:",F.type.str, "disabled:",F.disabled, "timeouts:", F.timeouts, "priority:", F.priority );
 
     basicString_t buf;
     DBResult * res = DBA( buf.sprintf( "select count(item.id) as count from item,item_feeds where item.id=item_feeds.item_id and item_feeds.feed_id = %d;",feed_id ).str );
@@ -3276,7 +3276,7 @@ int rss_view()
 void rss_add_usage( const char * msg =0 ) {
     if ( msg )
         printf( "%s\n", msg );
-    
+
     printf( "usage: %s add [-f feed_id][-n] <file|url> \n\n", exename.str );
     printf( "   no args       add url, creating feed if not exists and pull items from it\n" );
     printf( "   -n            add new feed from file\n" );
@@ -3293,7 +3293,7 @@ void rss_add()
 - add url, pull items
 - add new feed, will prompt if feed already exists w/ same xmlUrl
 - add items from file to existing feed
-    doesnt care about urls, items go to whatever feed_id specified 
+    doesnt care about urls, items go to whatever feed_id specified
 */
     basicString_t fetch;
     XMLDocument document;
@@ -3302,7 +3302,7 @@ void rss_add()
     bool insert_new = false;
 
     // url only
-    if ( cmd_args.count() == 1 )        
+    if ( cmd_args.count() == 1 )
     {
         if ( file_exists( cmd_args[0]->str ) )
             return rss_add_usage( fetch.sprintf( "looks like argument is file. In order to load %s needs to know if you would like it merged to an existing feed, or a new one created. Use --help to see options", exename.str ).str );
@@ -3319,7 +3319,7 @@ void rss_add()
     }
 
     // new from file
-    else if ( cmd_args.count() == 2 ) 
+    else if ( cmd_args.count() == 2 )
     {
         const char * path = file_exists( cmd_args[1]->str );
         if ( !path || *cmd_args[0] != "-n" ) {
@@ -3333,7 +3333,7 @@ void rss_add()
     }
 
     // file to existing feed_id
-    else if ( cmd_args.count() == 3 ) 
+    else if ( cmd_args.count() == 3 )
     {
         const char * path = file_exists( cmd_args[2]->str );
         feed_id = atoi( cmd_args[1]->str );
@@ -3361,7 +3361,7 @@ void rss_add()
 
     // need it
     if ( 0 == feed_id ) {
-        // get feed_id 
+        // get feed_id
         basicString_t _url = feed->xmlUrl;
         DBA.fixQuotes( _url );
         DBResult * res = DBA( fetch.sprintf( "select id from feed where xmlUrl = '%s' order by id desc limit 1;", _url.str ).str );
@@ -3375,7 +3375,7 @@ void rss_add()
     // takes XMLDocument and inserts items
     int total_inserted = insert_any_new_items( document, feed_id );
 
-    // report how many items 
+    // report how many items
     printf( "%d items pulled for %s\n", total_inserted, unescaped_title.str );
 
 
@@ -3485,14 +3485,14 @@ void rss_dump()
     }
 
     // got to here, means create rss document from internal storage
-    // 
+    //
     buf.sprintf( "select item.* from item,item_feeds where item.id = item_feeds.item_id and item_feeds.feed_id = %d order by sqldate desc", feed.id );
     if ( limit != 0 ) {
         buf += " limit ";
         buf += limit;
     }
     buf += ";";
-        
+
     DBResult * itemRes = DBA( buf.str );
 
 
@@ -3516,7 +3516,7 @@ void print_feed_items( DBResult * res, bool newest_first =true, bool display_bod
     if ( !res )
         return ;
 
-    // 
+    //
     basicString_t stripped;
     HtmlTagStripper detagger;
 
@@ -3528,7 +3528,7 @@ void print_feed_items( DBResult * res, bool newest_first =true, bool display_bod
     // PRINT FEED ITEM
     //
     unsigned int row_num = 1;
-    DBRow * row; 
+    DBRow * row;
     while ( (row = res->NextRow()) )
     {
         //TAG (N,D,S,X,V), TITLE, trunc(DESCRIPTION,x), DATE, MEDIA
@@ -3591,7 +3591,7 @@ void print_feed_items( DBResult * res, bool newest_first =true, bool display_bod
             printf( "</h3>\n" );
         }
 
-        if ( display_body ) 
+        if ( display_body )
         {
             if ( isHtml ) {
                 printf( "<div class=\"content\" style=\"display:none\">\n" );
@@ -3619,14 +3619,14 @@ void print_feed_items( DBResult * res, bool newest_first =true, bool display_bod
                 printf( "</div>\n" );
             }
         }
-        
+
         // demark each item
         if ( isHtml ) {
             printf( "</div> <!-- item -->\n" );
         } else {
             draw_dashed_line();
         }
-            
+
         fflush( stdout );
         ++row_num;
     }
@@ -3689,9 +3689,9 @@ void rss_show()
         // is switch/option
         if ( cmd_args[i]->str && cmd_args[i]->str[0] == '-' )
         {
-            for ( unsigned int j = 1; j < cmd_args[i]->length(); j++ ) 
+            for ( unsigned int j = 1; j < cmd_args[i]->length(); j++ )
             {
-                switch ( (*cmd_args[i])[j] ) 
+                switch ( (*cmd_args[i])[j] )
                 {
                 case 'n':   // show items from the last update only
                     qcode |= CODE_SHOW_NEW;
@@ -3707,7 +3707,7 @@ void rss_show()
                 case 's':   // reverse sort order of whatever
                     qcode |= CODE_SHOW_NO_BODY;
                     break;
-                case 'l':   // limit items per feed 
+                case 'l':   // limit items per feed
                     qcode |= CODE_SHOW_LIMIT;
                     if ( i + 1 >= cmd_args.count() )
                         return rss_show_usage( "error: need argument\n" );
@@ -3754,7 +3754,7 @@ void rss_show()
         verbose_id = atoi( verbose.str );
 
         // if not number, try keyword taking first match
-        if ( 0 == verbose_id ) 
+        if ( 0 == verbose_id )
         {
             DBResult * res = DBA( buf.sprintf( "select * from feed where title like '%%%s%%' order by last_updated desc limit 1;", verbose.str ).str );
             if ( !res ) {
@@ -3768,20 +3768,20 @@ void rss_show()
         }
 
         //
-        // print out feed header info 
+        // print out feed header info
         //
         if ( verbose_id ) {
 
             draw_dashed_line();
 
             Feed_t& F = feed_from_db( verbose_id );
-            printf( "%-14s%d\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%d\n", "Feed id:", verbose_id, "Title:", F.title.str, "Description:", F.description.str, "xmlUrl:", F.xmlUrl.str, "htmlUrl:", F.htmlUrl.str, "disabled:",F.disabled ); 
+            printf( "%-14s%d\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%s\n%-14s%d\n", "Feed id:", verbose_id, "Title:", F.title.str, "Description:", F.description.str, "xmlUrl:", F.xmlUrl.str, "htmlUrl:", F.htmlUrl.str, "disabled:",F.disabled );
 
             draw_dashed_line();
 
             return;
         }
-        else 
+        else
         {
             return rss_show_usage( buf.sprintf( "no match for \"%s\"\n", verbose.str ).str );
         }
@@ -3789,7 +3789,7 @@ void rss_show()
 
 
     // match string gets precedence over NEW, ALL, or match_ids
-    if ( match_string.length() ) 
+    if ( match_string.length() )
     {
         DBResult * F = DBA( buf.sprintf( "select id from feed where title like '%%%s%%' order by last_updated desc;", match_string.str ).str );
         if ( F && F->numRows() > 0 )
@@ -3831,7 +3831,7 @@ void rss_show()
     }
 
     // look for match_ids, if found, turn into sql_where
-    // match ids can be in comma-separated, or hyphenated ranges, ie "10,12,23-26,44" 
+    // match ids can be in comma-separated, or hyphenated ranges, ie "10,12,23-26,44"
     // can use these in conjunction with new
     if ( match_ids.length() > 0 )
     {
@@ -3857,29 +3857,29 @@ void rss_show()
     {
         buffer_t<unsigned int> ibuf;
         translate_str_range( exclude.str, ibuf );
-    
-        if ( ibuf.length() ) 
+
+        if ( ibuf.length() )
         {
             if ( sql_where.length() )
                 sql_where.append( " and (" );
             else
                 sql_where = "(";
 
-            for ( unsigned int i = 0; i < ibuf.length(); i++ ) 
+            for ( unsigned int i = 0; i < ibuf.length(); i++ )
                 sql_where.append( buf.sprintf( "feed.id!=%u and ", ibuf[i] ).str );
-            
+
             buf.strncpy( sql_where.str, sql_where.length() - 4 );
-    
+
             sql_where = buf += ")";
         }
     }
 
 
-    // 
+    //
     // construct query string
-    // 
+    //
 
-    // 
+    //
     query = "select feed.title as ftitle, item_feeds.feed_id, item.* from feed,item,item_feeds where item_feeds.feed_id=feed.id and item_feeds.item_id=item.id";
 
     // constraints
@@ -3897,7 +3897,7 @@ void rss_show()
         query.append( " order by " );
 
     // reverse
-    if ( (qcode&CODE_SHOW_REVERSE)==CODE_SHOW_REVERSE ) 
+    if ( (qcode&CODE_SHOW_REVERSE)==CODE_SHOW_REVERSE )
     {
         query.append( "item.sqldate asc" );
         newest_first = false;
@@ -3908,15 +3908,15 @@ void rss_show()
     }
 
     // limit
-    if ( (qcode&CODE_SHOW_LIMIT)==CODE_SHOW_LIMIT ) 
+    if ( (qcode&CODE_SHOW_LIMIT)==CODE_SHOW_LIMIT )
         query.append( buf.sprintf( " limit %d;", limit ).str );
     else
         query.append( ";" );
 
 
-    //    
+    //
     // actually do query
-    //    
+    //
     DBResult * res = DBA( query.str );
 
     if ( !res || res->numRows() == 0 ) {
@@ -3961,15 +3961,15 @@ void rss_list()
     int qcode = 0;
     basicString_t buf;
     basicString_t match;
-    basicString_t query( "select * from feed" ); 
+    basicString_t query( "select * from feed" );
 
-    if ( cmd_args.count() > 0 ) 
+    if ( cmd_args.count() > 0 )
     {
-        for ( unsigned int i = 0; i < cmd_args.count(); i++ ) 
+        for ( unsigned int i = 0; i < cmd_args.count(); i++ )
         {
-            if ( (*cmd_args[i])[0] == '-' ) 
+            if ( (*cmd_args[i])[0] == '-' )
             {
-                for ( unsigned int j = 1; j < cmd_args[i]->length(); j++ ) 
+                for ( unsigned int j = 1; j < cmd_args[i]->length(); j++ )
                 {
                     switch ( (*cmd_args[i])[j] ) {
                     case 'a':
@@ -4006,7 +4006,7 @@ void rss_list()
         }
     }
 
-    if ( match.length() > 0 ) 
+    if ( match.length() > 0 )
     {
         buf.sprintf( " where %s", translate_unknown_args( match.str ).str );
         query.append( buf );
@@ -4030,7 +4030,7 @@ void rss_list()
 
     // DO QUERY
     DBResult * res = DBA( query.str );
-    if ( !res ) 
+    if ( !res )
         error( "badly formed query: \"%s\"\n", query.str );
 
     if ( res->numRows() == 0 ) {
@@ -4043,7 +4043,7 @@ void rss_list()
         return;
     }
 
-    // 
+    //
     if ( res->numRows() <= (unsigned) term_lines )
         turn_off_pager();
 
@@ -4068,7 +4068,7 @@ void rss_list()
         DBResult * cRes = DBA( buf.sprintf("select count(item.id) as count from item_feeds, item where item_feeds.item_id = item.id and item_feeds.feed_id = %d;",id).str );
         DBValue * count_v = cRes->FindByNameFirstRow( "count" );
 
-        if ( (qcode&CODE_ZERO)==CODE_ZERO && count_v && count_v->getInt() ) 
+        if ( (qcode&CODE_ZERO)==CODE_ZERO && count_v && count_v->getInt() )
             continue; // -z flag
 
         printf( id_fmt, v->getInt() );
@@ -4112,7 +4112,7 @@ void rss_list()
 
         v = row.FindByName( "errmsg" );
         printf( " %s", v && v->getString() && strlen(v->getString())>0 ? v->getString() : "" );
-        
+
         printf( "\n" );
     }
 } // rss_list
@@ -4122,14 +4122,14 @@ static void rss_export_help() {
     printf( "usage: %s export [-m]\n\n    -m    minify output\n\n", exename.str );
 }
 
-// supports only 1 argument, -m 
+// supports only 1 argument, -m
 void rss_export()
 {
     bool minify = false;
     if ( cmd_args.length() ) {
         if ( *cmd_args[0] == "-h" || *cmd_args[0] == "--help" )
             return rss_export_help();
-        if ( *cmd_args[0] != "-m" ) 
+        if ( *cmd_args[0] != "-m" )
             return rss_export_help();
         minify = true;
     }
@@ -4152,13 +4152,13 @@ void rss_export()
     opml->InsertEndChild( body );
 
 #define OUTLINE_ATTRIB_SZ 8
-    
+
     struct sixpack {
         basicString_t val[OUTLINE_ATTRIB_SZ];
         basicString_t& operator[] ( unsigned int i ) {
             return val[i];
         }
-        void clear() { 
+        void clear() {
             for ( unsigned int i = 0 ; i < OUTLINE_ATTRIB_SZ; i++ ) { val[i].erase(); }
         }
     } six;
@@ -4176,7 +4176,7 @@ void rss_export()
         six[3] = __DontGetIfNotExist( "xmlUrl", row );
         six[4] = __DontGetIfNotExist( "htmlUrl", row );
         six[5] = __DontGetIfNotExist( "description", row );
-    
+
         // dont know if I can get away with putting this here, but if I can then I can transport which feeds
         //  are disabled between installations of rss.
         six[6] = __DontGetIfNotExist( "disabled", row );
@@ -4189,7 +4189,7 @@ void rss_export()
         XMLElement * outline = doc.NewElement( "outline" );
         body->InsertEndChild( outline );
 
-        for ( int i = 0 ; i < OUTLINE_ATTRIB_SZ ; i++ ) 
+        for ( int i = 0 ; i < OUTLINE_ATTRIB_SZ ; i++ )
         {
             if ( six[i].length() ) {
                 outline->SetAttribute( attr[i], six[i].str );
@@ -4254,7 +4254,7 @@ void rss_import()
     int num_inserted = 0;
 
     DBA.BeginTransaction();
-        for ( unsigned int i = 0; i < feedBuf.count(); i++ ) 
+        for ( unsigned int i = 0; i < feedBuf.count(); i++ )
         {
             if ( insert_feed_if_not_exist( *feedBuf[i] ) )
                 ++num_inserted;
@@ -4280,7 +4280,7 @@ void remove_reports_over_quota()
     {
         DBRow& row = (*res)[i];
         DBValue * v = row.FindByName( "id" );
-        if ( v ) 
+        if ( v )
             DBA( mule.sprintf("delete from reports where id = %d;",v->getInt()).str );
     }
 }
@@ -4299,7 +4299,7 @@ void rss_update()
     basicString_t matches;
 
     // group cmd_args together
-    for ( unsigned int i = 0 ; i < cmd_args.count(); i++ ) 
+    for ( unsigned int i = 0 ; i < cmd_args.count(); i++ )
         matches += *cmd_args[i] + " ";
 
     matches.trim();
@@ -4307,7 +4307,7 @@ void rss_update()
     // this figures it out
     matches = translate_unknown_args( matches.str );
 
-    if ( matches.length() ) 
+    if ( matches.length() )
         fetch.sprintf( "select * from feed where (disabled = 0) and %s;", matches.str );
     else
         fetch.append(";");
@@ -4315,7 +4315,7 @@ void rss_update()
 
     DBResult * res = DBA( fetch.str );
 
-    if ( !res || res->numRows() == 0 ) 
+    if ( !res || res->numRows() == 0 )
     {
         res = DBA( "select count(id) as c from feed;" );
         DBValue * v = res ? res->FindByNameFirstRow("c") : 0;
@@ -4331,7 +4331,7 @@ void rss_update()
     stringbuffer_t updated_feeds;
     basicString_t ids_inserted;
 
-    if ( res->numRows() > 0 ) 
+    if ( res->numRows() > 0 )
         printf( "Updating your feeds:\n" );
 
     stimer_t timer;
@@ -4345,7 +4345,7 @@ void rss_update()
     sprintf( url_fmt, "%%-%dd %%-%u.%us", degree, update_title_len, update_title_len );
 
     // foreach feed
-    for ( unsigned int i = 0; i < res->numRows(); i++ ) 
+    for ( unsigned int i = 0; i < res->numRows(); i++ )
     {
         DBRow& row = (*res)[i];
         DBValue * val;
@@ -4355,11 +4355,11 @@ void rss_update()
         const char * title = !val ? "none" : val->getString() ? val->getString() : "none";
         val = row.FindByName( "id" );
         int feed_id = val ? val->getInt() : 0;
-        
+
         // erase buffer before every fetch
         fetch.erase();
-         
-        // get the xmlurl 
+
+        // get the xmlurl
         if ( (val = row.FindByName( "xmlUrl" )) ) {
             //printf( url_fmt, feed_id, val->getString() ); // URL
             printf( url_fmt, feed_id, title ); // TITLE
@@ -4377,12 +4377,12 @@ void rss_update()
 
                 // put in report so we can see record of what's timing out
                 basicString_t * str_p = new basicString_t;
-                if ( to ) 
+                if ( to )
                     str_p->sprintf( " X- [%d] %s timed out %s time!11\n", feed_id, title, to > 9 ? "nth" : ordinals[to] );
                 else
                     str_p->sprintf( " X- [%d] %s timed out!11\n", feed_id, title );
                 updated_feeds.push_back( str_p );
-                
+
 
                 continue;
             }
@@ -4418,11 +4418,11 @@ void rss_update()
         val = row.FindByName( "description" );
 
         // if feed doesn't already have a description (opml doesn't usually carry one)
-        if ( !val || !val->getString() || strlen(val->getString())== 0 || strcmp(val->getString(),"(null)") == 0 ) 
+        if ( !val || !val->getString() || strlen(val->getString())== 0 || strcmp(val->getString(),"(null)") == 0 )
         {
             // try rss
             XMLElement * elt = document.FirstChildElement( "rss" );
-            if ( elt ) 
+            if ( elt )
                 elt = elt->FirstChildElement( "channel" );
             // try atom
             if ( !elt )
@@ -4430,7 +4430,7 @@ void rss_update()
             // try rdf
             if ( !elt ) {
                 elt = document.FirstChildElement( "rdf:RDF" );
-                if ( elt ) 
+                if ( elt )
                     elt = elt->FirstChildElement( "channel" );
             }
 
@@ -4456,7 +4456,7 @@ void rss_update()
         }
 
         // update counters and save a summary, if we got any
-        if ( inserted_this_feed ) 
+        if ( inserted_this_feed )
         {
             ++feeds_altered;
             basicString_t * str_p = new basicString_t;
@@ -4470,20 +4470,20 @@ void rss_update()
         DBResult * result = DBA( fetch.sprintf( "select feed.last_updated,item.sqldate from item_feeds,feed,item where item_feeds.feed_id = feed.id and item_feeds.item_id = item.id and feed.id = %d order by item.sqldate desc limit 1;", feed_id ).str );
         if ( result ) {
             val = result->FindByNameFirstRow( "sqldate" );
-            if ( val ) 
+            if ( val )
                 last_updated = val->getString();
             val = result->FindByNameFirstRow( "last_updated" );
-            if ( val && last_updated == val->getString() ) 
-                last_updated = 0; // only bother to update if dates differ 
+            if ( val && last_updated == val->getString() )
+                last_updated = 0; // only bother to update if dates differ
         }
 
         // report how many items directly, as your getting them
-        if ( inserted_this_feed > 0 ) 
+        if ( inserted_this_feed > 0 )
             printf( "  %d new item%s\n", inserted_this_feed, inserted_this_feed>1?"s":"" );
         else
             printf( "\n" );
         fflush(stdout);
-        
+
 
         // set last_update to time of most recent post, and fix description if we dont have it and scraped one from the feed
         if ( (inserted_this_feed > 0 || feed_status == 1) && (description.length() > 0 || last_updated.length() > 0) )
@@ -4495,7 +4495,7 @@ void rss_update()
                 fetch.append( description );
             }
             if ( last_updated.length() > 0 ) {
-                if ( description.length() > 0 ) 
+                if ( description.length() > 0 )
                     fetch.append("',");
                 fetch.append( "last_updated = '" );
                 fetch.append( last_updated );
@@ -4506,7 +4506,7 @@ void rss_update()
 
     // make summary
     fetch = "Got items from:\n";
-    for ( unsigned int i = 0 ; i < updated_feeds.count(); i++ ) 
+    for ( unsigned int i = 0 ; i < updated_feeds.count(); i++ )
         fetch.append( updated_feeds[i]->str );
     if ( 0 == feeds_altered )
         matches.sprintf( "no new items found out of %u feed%s queried.", res->numRows(), res->numRows() > 1 ? "s" : "" );
@@ -4543,7 +4543,7 @@ void rss_report()
     basicString_t query;
     int index = 0;
 
-    if ( cmd_args.length() ) 
+    if ( cmd_args.length() )
     {
         if ( *cmd_args[0] == "-h" || *cmd_args[0] == "--help" ) {
             rss_report_usage();
@@ -4552,11 +4552,11 @@ void rss_report()
 
         index = atoi( cmd_args[0]->str );
 
-        if ( *cmd_args[0] == "-a" ) 
+        if ( *cmd_args[0] == "-a" )
             query = "select update_time,report from reports order by update_time desc;";
-        else if ( 0 != index ) 
+        else if ( 0 != index )
             query.sprintf( "select update_time,report from reports order by update_time desc limit %d;", index );
-        else if ( cmd_args[0]->str[0] == '-' ) 
+        else if ( cmd_args[0]->str[0] == '-' )
             return rss_report_usage(); // no other possible args start w/ -
         else
             query = "select update_time,report from reports order by update_time desc limit 1;";
@@ -4599,9 +4599,9 @@ void rss_report()
 
 static int rss_enable_disable()
 {
-    if ( cmd_args.length() < 2 ) 
+    if ( cmd_args.length() < 2 )
         return printf( "usage: %s disable <-e|-d> <#>\n", exename.str );
-    
+
     basicString_t &opt = *cmd_args[0];
     basicString_t &num = *cmd_args[1];
 
@@ -4629,9 +4629,9 @@ static int rss_enable_disable()
     if ( 0 == dis )
         DBA( buf.sprintf( "update feed set timeouts = 0, errmsg = '' where id = %d;", feed_id ).str );
 
-    if ( v && v->getInt() == dis ) 
+    if ( v && v->getInt() == dis )
         return printf( "feed %d already %s\n", feed_id, dis ? "disabled" : "enabled" );
-        
+
     // do it
     DBA( buf.sprintf("update feed set disabled = %d where id = %d;", dis, feed_id).str );
 
@@ -4693,7 +4693,7 @@ static unsigned int _remove_feed( int feed_id )
 
     // foreach item
     DBRow * row;
-    while ( (row = res->NextRow()) ) 
+    while ( (row = res->NextRow()) )
     {
         DBValue * v = row->FindByName("id");
         int item_id;
@@ -4749,7 +4749,7 @@ void rss_rm()
         quiet = true;
         match = *cmd_args[0];
     }
-    else 
+    else
     {
         match = *cmd_args[0];
     }
@@ -4765,7 +4765,7 @@ void rss_rm()
             return;
 
         _remove_feed(feed.id);
-    } 
+    }
     else
     {
         Feed_t & feed = feed_from_db( id );
@@ -4777,7 +4777,7 @@ void rss_rm()
 
         printf( "Really delete [%d] \"%s\" [y/N]? ", id, feed.title.str );
         const char * ans = get_input();
-        if ( ans && (strcmp( ans, "y" ) == 0 || strcmp( ans, "Y" ) == 0) ) 
+        if ( ans && (strcmp( ans, "y" ) == 0 || strcmp( ans, "Y" ) == 0) )
         {
             unsigned int i_rm = _remove_feed( feed.id );
             printf( "removed feed %d, and %u item%s \n", id, i_rm, i_rm!=1?"s":"" );
@@ -4825,7 +4825,7 @@ void rss_edit()
     const char * current;
     char ibuf[10];
 
-    if ( cmd_args.count() == 1 ) 
+    if ( cmd_args.count() == 1 )
     {
         printf( "Editing: \"%s\".  What do you want to change?\n", feed.title.str );
         answer = prompt( " [1] title\n [2] description\n [3] xmlUrl\n [4] htmlUrl\n [5] type\n [6] priority\n (0 exits)>", 0 );
@@ -4836,11 +4836,11 @@ void rss_edit()
         }
         S = &buf;
         buf.clear();
-        switch ( m ) { 
-        case 1: *S="-t";break; 
-        case 2: *S="-d";break; 
-        case 3: *S="-x";break; 
-        case 4: *S="-h";break; 
+        switch ( m ) {
+        case 1: *S="-t";break;
+        case 2: *S="-d";break;
+        case 3: *S="-x";break;
+        case 4: *S="-h";break;
         case 5: *S="-m";break;
         case 6: *S="-p";break;
         default:
@@ -4868,22 +4868,22 @@ void rss_edit()
     {
         keyword = "htmlUrl";
         current = feed.htmlUrl.str;
-    } 
+    }
     else if ( *S == "-m" )
     {
         keyword = "type";
         current = feed.type.str;
-    }    
+    }
     else if ( *S == "-p" )
     {
         keyword = "priority";
         current = &ibuf[0];
         sprintf( ibuf, "%d", feed.priority );
-    }    
+    }
     else
     {
         return rss_edit_usage( "2nd argument is switch: -t, -d, -x, -h, -m, -p\n" );
-    }    
+    }
 
 
     if ( ! A ) {
@@ -4936,7 +4936,7 @@ void rss_search()
             match_start = i+1;
         }
         else if ( A == "-f" ) {
-            if ( i < cmd_args.count()-1 ) 
+            if ( i < cmd_args.count()-1 )
                 specific_feeds = translate_unknown_args( cmd_args[++i]->str );
             else
                 return rss_search_usage();
@@ -5023,15 +5023,15 @@ int rss_mark( int feed_id, int item_id, const char *_title, const char *iurl, co
     DBA.fixQuotes( title );
     DBA.fixQuotes( item_url );
     DBA.fixQuotes( media_url );
-    
-    
+
+
     // check for duplicates
     query.sprintf( "select * from saved_links where feed_id = %d and title = '%s' and", feed_id, title.str );
-    if ( item_url.length() ) 
+    if ( item_url.length() )
         query += buf.sprintf( " item_url='%s' and", item_url.str );
-    if ( media_url.length() ) 
+    if ( media_url.length() )
         query += buf.sprintf( " media_url='%s' and", media_url.str );
-    
+
     query.strncpy( query.str, query.length()-4 ); // clip trailing and
     query += ';';
 
@@ -5062,13 +5062,13 @@ int rss_mark( int feed_id, int item_id, const char *_title, const char *iurl, co
         query += "item_url,";
         vals += buf.sprintf( "'%s',", item_url.str );
     }
-    if ( media_url.length() ) { 
+    if ( media_url.length() ) {
         query += "media_url,";
         vals += buf.sprintf( "'%s',", media_url.str );
     }
 
     // clip commas
-    query.strncpy( query.str, query.length()-1 ); 
+    query.strncpy( query.str, query.length()-1 );
     vals.strncpy( vals.str, vals.length()-1 );
 
     // concat
@@ -5076,7 +5076,7 @@ int rss_mark( int feed_id, int item_id, const char *_title, const char *iurl, co
 
     // run
     res = DBA( query.str );
-    if ( res ) 
+    if ( res )
         return res->lastInsertId();
 
     return 0;
@@ -5093,7 +5093,7 @@ void rss_pod()
         if ( pp != podcast_detection_types )
             query += " or";
         query += buf.sprintf( " media_url like '%%%s%%'", *pp );
-    } 
+    }
     while ( *++pp );
     query += ") order by feed.id asc;";
 
@@ -5180,7 +5180,7 @@ void rss_vis()
 }
 
 
-void rss_priority() 
+void rss_priority()
 {
     DBResult * res = DBA( "select priority,id,title from feed order by priority desc;" );
     if ( !res )
@@ -5193,7 +5193,7 @@ void rss_priority()
         DBValue * p = row->FindByName( "priority" );
         DBValue * i = row->FindByName( "id" );
         DBValue * t = row->FindByName( "title" );
-        
+
         int pri = p ? p->getInt() : 0;
         int id = i ? i->getInt() : 0;
         const char * title = t ? t->getString() : 0;
@@ -5206,22 +5206,22 @@ void rss_priority()
 void rss_test()
 {
 #ifdef _DEBUG
-    
+
     const char *ranges[] = { "", "10", "15,10,20,5,25", "12-18,4-8,1-3", "sterling", "NYT", ",11", "-22", " hacker ", 0 };
     const char **pp = ranges;
     while ( *pp ) {
-        basicString_t& R = translate_unknown_args( *pp ); 
+        basicString_t& R = translate_unknown_args( *pp );
         printf( "%-20s", *pp );
         R.Print( "%s\n" );
         ++pp;
     }
-    basicString_t& R = translate_unknown_args( "1-39,44,46-52,300-420", "item.id" ); 
+    basicString_t& R = translate_unknown_args( "1-39,44,46-52,300-420", "item.id" );
     R.Print( "testing items: %s\n" );
-    
+
     //------------------------------------
     basicString_t A( "melvin" );
     basicString_t B( "MELVIN" );
-    if ( A.icompare( B ) ) 
+    if ( A.icompare( B ) )
         printf( "%s == %s\n", A.str, B.str );
     B.str[2] = 'i';
     if ( !A.icompare( B ) )
@@ -5278,7 +5278,7 @@ void run_program_command()
     switch ( run_code )
     {
     case CMD_IMPORT:
-        rss_import(); 
+        rss_import();
         break;
     case CMD_EXPORT:
         rss_export();
@@ -5354,7 +5354,7 @@ int main( int argc, char ** argv )
     // ready to run sub-routine
     run_program_command();
 
-    // In case we're in pager, don't wait to free old query results 
+    // In case we're in pager, don't wait to free old query results
     DBA.nukeSavedResults();
 
     return 0;
