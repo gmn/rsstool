@@ -35,7 +35,7 @@ struct sha1_context_t {
 };
 
 void SHA1_Init( sha1_context_t *context );
-void SHA1_Update( sha1_context_t *context, uint8_t *buf, size_t len );
+void SHA1_Update( sha1_context_t *context, const unsigned char * buf, unsigned int len );
 void SHA1_Final( sha1_digest_t digest, sha1_context_t *context );
 void SHA1_UpdateInt32( sha1_context_t *context, unsigned int val );
 
